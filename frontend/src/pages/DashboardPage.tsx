@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCounters, fetchLibraries } from '@/api/dashboard'
 import Header from '@/components/layout/Header'
