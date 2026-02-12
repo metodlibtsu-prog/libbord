@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 from app.scheduler.jobs import daily_sync_job
 
@@ -19,12 +19,12 @@ def start_scheduler():
     Настроено задание:
     - daily_sync_job: ежедневно в 3:00 (время сервера)
     """
-    # Добавляем задание синхронизации
+    # Синхронизация каждые 4 часа
     scheduler.add_job(
         daily_sync_job,
-        trigger=CronTrigger(hour=3, minute=0),
-        id="daily_sync",
-        name="Daily Yandex.Metrika sync",
+        trigger=IntervalTrigger(hours=4),
+        id="periodic_sync",
+        name="Periodic Yandex.Metrika sync (every 4h)",
         replace_existing=True,
     )
 

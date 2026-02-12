@@ -5,7 +5,7 @@ import uuid
 from typing import Any
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +18,7 @@ from app.models.metric_counter import MetricCounter, SyncStatus
 from app.models.yandex_token import YandexToken
 from app.schemas.metric_counter import MetricCounterOut
 from app.schemas.yandex import LinkCounterRequest, OAuthStartResponse, YandexCounterOut
+from app.services.sync_service import sync_library_metrics
 from app.services.yandex_metrika import YandexMetrikaService
 
 router = APIRouter(prefix="/api/yandex", tags=["yandex"])
@@ -161,6 +162,7 @@ async def list_counters(
 @router.post("/link-counter", response_model=MetricCounterOut)
 async def link_counter(
     data: LinkCounterRequest,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     # NOTE: Temporarily public - JWT validation with ES256 needs to be fixed
     # _admin: dict = Depends(get_current_admin),
@@ -206,6 +208,20 @@ async def link_counter(
     db.add(counter)
     await db.commit()
     await db.refresh(counter)
+
+    # Auto-sync: подтянуть данные в фоне сразу после подключения
+    async def _bg_sync(library_id: uuid.UUID):
+        import logging
+        from app.database import async_session
+        _logger = logging.getLogger(__name__)
+        try:
+            async with async_session() as bg_db:
+                await sync_library_metrics(bg_db, library_id)
+            _logger.info(f"Auto-sync completed for library {library_id}")
+        except Exception as e:
+            _logger.error(f"Auto-sync failed: {e}")
+
+    background_tasks.add_task(_bg_sync, data.library_id)
 
     return counter
 
