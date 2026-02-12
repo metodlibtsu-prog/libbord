@@ -78,6 +78,6 @@ export async function linkYandexCounter(payload: {
 
 // Sync
 export async function triggerSync(libraryId: string): Promise<{ message: string }> {
-  const { data } = await apiClient.post('/sync/trigger', { library_id: libraryId })
+  const { data } = await apiClient.post('/sync/trigger', null, { params: { library_id: libraryId } })
   return data
 }
