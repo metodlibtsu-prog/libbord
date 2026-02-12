@@ -133,7 +133,7 @@ class YandexMetrikaService:
             "ym:s:avgVisitDurationSeconds",  # среднее время (avg_time)
             "ym:s:pageDepth",  # глубина
             "ym:s:bounceRate",  # показатель отказов
-            "ym:s:percentNewVisits",  # процент новых визитов (для расчета return_rate)
+            "ym:s:newUsers",  # новые пользователи (для расчета return_rate)
         ]
 
         params = {
@@ -176,12 +176,10 @@ class YandexMetrikaService:
             avg_time = float(metrics_values[3]) if len(metrics_values) > 3 else 0.0
             depth = float(metrics_values[4]) if len(metrics_values) > 4 else 0.0
             bounce_rate = float(metrics_values[5]) if len(metrics_values) > 5 else 0.0
-            new_visits_pct = (
-                float(metrics_values[6]) if len(metrics_values) > 6 else 0.0
-            )
+            new_users = int(metrics_values[6]) if len(metrics_values) > 6 else 0
 
-            # Calculate return_rate as (1 - new_visits_pct / 100)
-            return_rate = max(0.0, 1.0 - (new_visits_pct / 100.0))
+            # Calculate return_rate as (users - new_users) / users
+            return_rate = max(0.0, (users - new_users) / users) if users > 0 else 0.0
 
             result[date_str] = {
                 "views": views,
