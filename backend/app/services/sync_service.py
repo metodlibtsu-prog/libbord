@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 import logging
 import uuid
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 
@@ -90,13 +90,6 @@ async def sync_library_metrics(db: AsyncSession, library_id: uuid.UUID) -> None:
     }
 
     logger.info(f"Found {len(counters)} active counters, {len(all_channels)} channels to sync")
-
-    # Clean old mismatched data (all data was written to channels[0] before fix)
-    await db.execute(
-        delete(TrafficMetric).where(TrafficMetric.library_id == library_id)
-    )
-    await db.commit()
-    logger.info("Cleared old traffic_metrics for re-sync with correct channel mapping")
 
     # 4. Sync each counter
     async with YandexMetrikaService(token.access_token) as ym_service:
