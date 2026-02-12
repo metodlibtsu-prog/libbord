@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 import logging
 import uuid
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.dialects.postgresql import insert
 
@@ -76,7 +76,27 @@ async def sync_library_metrics(db: AsyncSession, library_id: uuid.UUID) -> None:
         logger.info(f"No active counters found for library {library_id}")
         return
 
-    logger.info(f"Found {len(counters)} active counters to sync")
+    # Get all non-manual channels and build name->channel map
+    channels_result = await db.execute(
+        select(Channel).where(
+            Channel.library_id == library_id,
+            Channel.is_manual == False,
+        )
+    )
+    all_channels = channels_result.scalars().all()
+    # Map by stripped custom_name for matching with counter name
+    channel_by_name = {
+        (ch.custom_name or "").strip(): ch for ch in all_channels
+    }
+
+    logger.info(f"Found {len(counters)} active counters, {len(all_channels)} channels to sync")
+
+    # Clean old mismatched data (all data was written to channels[0] before fix)
+    await db.execute(
+        delete(TrafficMetric).where(TrafficMetric.library_id == library_id)
+    )
+    await db.commit()
+    logger.info("Cleared old traffic_metrics for re-sync with correct channel mapping")
 
     # 4. Sync each counter
     async with YandexMetrikaService(token.access_token) as ym_service:
@@ -97,22 +117,26 @@ async def sync_library_metrics(db: AsyncSession, library_id: uuid.UUID) -> None:
                     counter.yandex_counter_id, date_from, date_to
                 )
 
-                # Find the channel associated with this counter
-                channel_result = await db.execute(
-                    select(Channel).where(
-                        Channel.library_id == library_id,
-                        Channel.is_manual == False,
-                    )
-                )
-                channels = channel_result.scalars().all()
+                # Match counter to its channel by name
+                counter_name = (counter.name or "").strip()
+                channel = channel_by_name.get(counter_name)
 
-                # For simplicity, use the first non-manual channel
-                # In production, you might want to link counter to specific channel
-                if not channels:
-                    logger.warning("No non-manual channel found for counter")
+                if not channel and all_channels:
+                    # Fallback: try to find by partial match
+                    for ch in all_channels:
+                        ch_name = (ch.custom_name or "").strip()
+                        if ch_name and counter_name and (
+                            ch_name in counter_name or counter_name in ch_name
+                        ):
+                            channel = ch
+                            break
+
+                if not channel:
+                    logger.warning(f"No matching channel found for counter '{counter_name}'")
+                    counter.sync_status = SyncStatus.ERROR
+                    counter.sync_error_message = f"No matching channel for '{counter_name}'"
+                    await db.commit()
                     continue
-
-                channel = channels[0]
 
                 # c. Upsert traffic metrics
                 for date_str, metrics in metrics_data.items():
