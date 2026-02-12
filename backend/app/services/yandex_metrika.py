@@ -149,7 +149,11 @@ class YandexMetrikaService:
         response = await self.client.get(
             f"{self.API_BASE_URL}/stat/v1/data", params=params
         )
-        response.raise_for_status()
+        if response.status_code != 200:
+            error_body = response.text
+            raise Exception(
+                f"Yandex API {response.status_code}: {error_body}"
+            )
         data = response.json()
 
         # Parse response
