@@ -19,6 +19,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     getSession().then((s) => {
       setSession(s)
+      if (s) {
+        localStorage.setItem('access_token', s.access_token)
+      }
       setLoading(false)
     })
 

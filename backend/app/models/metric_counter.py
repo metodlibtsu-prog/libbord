@@ -1,11 +1,21 @@
 import uuid
 from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, IdMixin, TimestampMixin
+
+
+class SyncStatus(str, Enum):
+    """Статусы синхронизации метрик"""
+    IDLE = "idle"
+    SYNCING = "syncing"
+    SUCCESS = "success"
+    ERROR = "error"
+
 
 sync_status_enum = ENUM("idle", "syncing", "success", "error", name="sync_status_type", create_type=False)
 

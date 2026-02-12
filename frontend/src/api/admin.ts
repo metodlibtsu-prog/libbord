@@ -47,3 +47,37 @@ export async function createReview(payload: {
   const { data } = await apiClient.post('/reviews', payload)
   return data
 }
+
+// Yandex.Metrika OAuth
+export async function startYandexOAuth(libraryId: string): Promise<{ auth_url: string }> {
+  const { data } = await apiClient.get('/yandex/oauth/start', {
+    params: { library_id: libraryId },
+  })
+  return data
+}
+
+export async function listYandexCounters(libraryId: string): Promise<{
+  counters: Array<{ id: number; name: string; status: string | null }>
+}> {
+  const { data } = await apiClient.get('/yandex/counters', {
+    params: { library_id: libraryId },
+  })
+  return data
+}
+
+export async function linkYandexCounter(payload: {
+  library_id: string
+  yandex_counter_id: string
+  name: string
+  channel_type: ChannelType
+  custom_name?: string
+}) {
+  const { data } = await apiClient.post('/yandex/link-counter', payload)
+  return data
+}
+
+// Sync
+export async function triggerSync(libraryId: string): Promise<{ message: string }> {
+  const { data } = await apiClient.post('/sync/trigger', { library_id: libraryId })
+  return data
+}

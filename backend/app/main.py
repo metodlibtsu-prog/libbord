@@ -11,14 +11,19 @@ from app.routers import (
     libraries,
     metric_counters,
     reviews,
+    sync,
+    yandex_auth,
 )
+from app.scheduler.setup import start_scheduler, stop_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
+    start_scheduler()
     yield
     # Shutdown
+    stop_scheduler()
 
 
 app = FastAPI(
@@ -43,6 +48,8 @@ app.include_router(channels.router)
 app.include_router(metric_counters.router)
 app.include_router(engagement_metrics.router)
 app.include_router(reviews.router)
+app.include_router(yandex_auth.router)
+app.include_router(sync.router)
 
 
 @app.get("/api/health")

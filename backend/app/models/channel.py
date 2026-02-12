@@ -1,10 +1,23 @@
 import uuid
+from enum import Enum
 
 from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, IdMixin, TimestampMixin
+
+
+class ChannelType(str, Enum):
+    """Типы цифровых каналов библиотеки"""
+    WEBSITE = "website"
+    E_LIBRARY = "e_library"
+    CATALOG = "catalog"
+    TELEGRAM = "telegram"
+    VK = "vk"
+    MOBILE_APP = "mobile_app"
+    OTHER = "other"
+
 
 channel_type_enum = ENUM(
     "website", "e_library", "catalog", "telegram", "vk", "mobile_app", "other",

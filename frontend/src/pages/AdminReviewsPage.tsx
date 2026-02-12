@@ -97,16 +97,39 @@ export default function AdminReviewsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Тональность</label>
-              <select
-                value={sentiment}
-                onChange={(e) => setSentiment(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-              >
-                <option value="positive">Позитивный</option>
-                <option value="neutral">Нейтральный</option>
-                <option value="negative">Негативный</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Тональность</label>
+              <div className="space-y-2">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    value="positive"
+                    checked={sentiment === 'positive'}
+                    onChange={(e) => setSentiment(e.target.value)}
+                    className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Положительный</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    value="neutral"
+                    checked={sentiment === 'neutral'}
+                    onChange={(e) => setSentiment(e.target.value)}
+                    className="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Нейтральный</span>
+                </label>
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    value="negative"
+                    checked={sentiment === 'negative'}
+                    onChange={(e) => setSentiment(e.target.value)}
+                    className="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Негативный</span>
+                </label>
+              </div>
             </div>
 
             <div>
