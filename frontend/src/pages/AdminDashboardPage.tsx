@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { fetchLibraries } from '@/api/dashboard'
-import { fetchAdminChannels, deleteChannel } from '@/api/admin'
+import { fetchAdminChannels, deleteChannel, triggerSync } from '@/api/admin'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 import ResourceCard from '@/components/admin/ResourceCard'
 import AddResourceModal from '@/components/admin/AddResourceModal'
@@ -16,6 +16,7 @@ export default function AdminDashboardPage() {
   const [showYandexWizard, setShowYandexWizard] = useState(false)
   const [showManualForm, setShowManualForm] = useState(false)
   const [yandexOAuthSuccess, setYandexOAuthSuccess] = useState(false)
+  const [syncing, setSyncing] = useState(false)
 
   const { data: libraries, isLoading } = useQuery({
     queryKey: ['libraries'],
@@ -69,6 +70,19 @@ export default function AdminDashboardPage() {
     }
   }
 
+  const handleSync = async () => {
+    if (!libraryId) return
+    setSyncing(true)
+    try {
+      await triggerSync(libraryId)
+      alert('Синхронизация завершена!')
+    } catch {
+      alert('Ошибка синхронизации')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const handleSuccess = () => {
     refetchChannels()
   }
@@ -82,6 +96,13 @@ export default function AdminDashboardPage() {
           Цифровые ресурсы библиотеки
         </h1>
         <div className="flex gap-3">
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {syncing ? 'Синхронизация...' : 'Синхронизировать'}
+          </button>
           <button
             onClick={() => navigate('/admin/reviews')}
             className="rounded-md border border-indigo-600 bg-white px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
