@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import PeriodSelector from '@/components/common/PeriodSelector'
 import CounterSelector from '@/components/common/CounterSelector'
 import type { MetricCounter } from '@/types'
@@ -25,6 +26,12 @@ export default function Header({ libraryName, counters, selectedCounter, onCount
               selected={selectedCounter}
               onChange={onCounterChange}
             />
+            <Link
+              to="/admin/login"
+              className="ml-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Войти
+            </Link>
           </div>
         </div>
       </div>
