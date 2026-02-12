@@ -69,7 +69,7 @@ async def trigger_sync(
                         "name": c.name,
                         "yandex_id": c.yandex_counter_id,
                         "is_active": c.is_active,
-                        "sync_status": c.sync_status.value if c.sync_status else None,
+                        "sync_status": str(c.sync_status) if c.sync_status else None,
                         "sync_error": c.sync_error_message,
                         "last_sync": str(c.last_sync_at) if c.last_sync_at else None,
                     }
