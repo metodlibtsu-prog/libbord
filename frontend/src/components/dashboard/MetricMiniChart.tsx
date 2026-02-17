@@ -62,6 +62,15 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
               <YAxis tick={{ fontSize: 11 }} stroke="#999" />
               <Tooltip
                 contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 }}
+                formatter={(value: any, name: string) => {
+                  const idx = parseInt(name.replace('counter_', ''))
+                  const counter = counters[idx]
+                  const counterName = counter ? counter.counter_name : name
+                  return [
+                    `${typeof value === 'number' ? value.toFixed(metricKey === 'depth' ? 2 : 1) : value}${unit}`,
+                    counterName,
+                  ]
+                }}
               />
               <Legend
                 wrapperStyle={{ fontSize: 11 }}
