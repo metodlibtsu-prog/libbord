@@ -54,8 +54,18 @@ class BehaviorPoint(BaseModel):
     return_rate: float
 
 
-class BehaviorData(BaseModel):
+class CounterBehaviorTimeline(BaseModel):
+    counter_id: uuid.UUID
+    counter_name: str
     timeline: list[BehaviorPoint]
+    current_avg_time: float
+    current_depth: float
+    current_bounce_rate: float
+    current_return_rate: float
+
+
+class BehaviorData(BaseModel):
+    counters: list[CounterBehaviorTimeline]
     avg_time_delta_pct: float | None
     depth_delta_pct: float | None
     bounce_rate_delta_pct: float | None

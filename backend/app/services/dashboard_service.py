@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.channel import Channel
 from app.models.engagement_metric import EngagementMetric
+from app.models.metric_counter import MetricCounter
 from app.models.review import Review
 from app.models.traffic_metric import TrafficMetric
 from app.schemas.dashboard import (
@@ -12,6 +13,7 @@ from app.schemas.dashboard import (
     BehaviorPoint,
     ChannelMetric,
     ChannelTrendPoint,
+    CounterBehaviorTimeline,
     EngagementData,
     EngagementPoint,
     KpiOverview,
@@ -135,7 +137,18 @@ async def get_behavior(
 ) -> BehaviorData:
     date_from, date_to, prev_from, prev_to = resolve_period(period)
 
-    async def _avg_behavior(d_from, d_to):
+    # Get all active counters for this library
+    counters_q = select(MetricCounter).where(
+        MetricCounter.library_id == library_id,
+        MetricCounter.is_active == True,
+    )
+    if counter_id:
+        counters_q = counters_q.where(MetricCounter.id == counter_id)
+
+    counters = (await db.execute(counters_q)).scalars().all()
+
+    # For overall delta calculation (all counters combined)
+    async def _avg_behavior_all(d_from, d_to):
         q = select(
             func.coalesce(func.avg(TrafficMetric.avg_time), 0),
             func.coalesce(func.avg(TrafficMetric.depth), 0),
@@ -151,46 +164,75 @@ async def get_behavior(
         row = (await db.execute(q)).one()
         return row[0], row[1], row[2], row[3]
 
-    cur = await _avg_behavior(date_from, date_to)
-    prev = await _avg_behavior(prev_from, prev_to)
+    cur_all = await _avg_behavior_all(date_from, date_to)
+    prev_all = await _avg_behavior_all(prev_from, prev_to)
 
-    # Timeline
-    q = (
-        select(
-            TrafficMetric.date,
-            func.avg(TrafficMetric.avg_time),
-            func.avg(TrafficMetric.depth),
-            func.avg(TrafficMetric.bounce_rate),
-            func.avg(TrafficMetric.return_rate),
+    # Build timeline for each counter
+    counter_timelines = []
+    for counter in counters:
+        # Get timeline data
+        timeline_q = (
+            select(
+                TrafficMetric.date,
+                func.avg(TrafficMetric.avg_time),
+                func.avg(TrafficMetric.depth),
+                func.avg(TrafficMetric.bounce_rate),
+                func.avg(TrafficMetric.return_rate),
+            )
+            .where(
+                TrafficMetric.library_id == library_id,
+                TrafficMetric.counter_id == counter.id,
+                TrafficMetric.date >= date_from,
+                TrafficMetric.date <= date_to,
+            )
+            .group_by(TrafficMetric.date)
+            .order_by(TrafficMetric.date)
         )
-        .where(
+        rows = (await db.execute(timeline_q)).all()
+
+        timeline = [
+            BehaviorPoint(
+                date=r[0],
+                avg_time=round(r[1], 1),
+                depth=round(r[2], 2),
+                bounce_rate=round(r[3], 1),
+                return_rate=round(r[4], 1),
+            )
+            for r in rows
+        ]
+
+        # Get current period averages for this counter
+        current_q = select(
+            func.coalesce(func.avg(TrafficMetric.avg_time), 0),
+            func.coalesce(func.avg(TrafficMetric.depth), 0),
+            func.coalesce(func.avg(TrafficMetric.bounce_rate), 0),
+            func.coalesce(func.avg(TrafficMetric.return_rate), 0),
+        ).where(
             TrafficMetric.library_id == library_id,
+            TrafficMetric.counter_id == counter.id,
             TrafficMetric.date >= date_from,
             TrafficMetric.date <= date_to,
         )
-    )
-    if counter_id:
-        q = q.where(TrafficMetric.counter_id == counter_id)
-    q = q.group_by(TrafficMetric.date).order_by(TrafficMetric.date)
+        current_row = (await db.execute(current_q)).one()
 
-    rows = (await db.execute(q)).all()
-    timeline = [
-        BehaviorPoint(
-            date=r[0],
-            avg_time=round(r[1], 1),
-            depth=round(r[2], 2),
-            bounce_rate=round(r[3], 1),
-            return_rate=round(r[4], 1),
+        counter_timelines.append(
+            CounterBehaviorTimeline(
+                counter_id=counter.id,
+                counter_name=counter.name,
+                timeline=timeline,
+                current_avg_time=round(current_row[0], 1),
+                current_depth=round(current_row[1], 2),
+                current_bounce_rate=round(current_row[2], 1),
+                current_return_rate=round(current_row[3], 1),
+            )
         )
-        for r in rows
-    ]
 
     return BehaviorData(
-        timeline=timeline,
-        avg_time_delta_pct=calc_delta_pct(cur[0], prev[0]),
-        depth_delta_pct=calc_delta_pct(cur[1], prev[1]),
-        bounce_rate_delta_pct=calc_delta_pct(cur[2], prev[2]),
-        return_rate_delta_pct=calc_delta_pct(cur[3], prev[3]),
+        counters=counter_timelines,
+        avg_time_delta_pct=calc_delta_pct(cur_all[0], prev_all[0]),
+        depth_delta_pct=calc_delta_pct(cur_all[1], prev_all[1]),
+        bounce_rate_delta_pct=calc_delta_pct(cur_all[2], prev_all[2]),
+        return_rate_delta_pct=calc_delta_pct(cur_all[3], prev_all[3]),
     )
 
 

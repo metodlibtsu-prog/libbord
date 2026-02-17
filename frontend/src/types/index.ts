@@ -68,8 +68,18 @@ export interface BehaviorPoint {
   return_rate: number
 }
 
-export interface BehaviorData {
+export interface CounterBehaviorTimeline {
+  counter_id: string
+  counter_name: string
   timeline: BehaviorPoint[]
+  current_avg_time: number
+  current_depth: number
+  current_bounce_rate: number
+  current_return_rate: number
+}
+
+export interface BehaviorData {
+  counters: CounterBehaviorTimeline[]
   avg_time_delta_pct: number | null
   depth_delta_pct: number | null
   bounce_rate_delta_pct: number | null
