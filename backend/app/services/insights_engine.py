@@ -24,13 +24,14 @@ def generate_insights(
         ))
 
     # Behavior insights
-    if behavior.timeline:
-        last_bounce = behavior.timeline[-1].bounce_rate
-        if last_bounce > 20:
+    if behavior.counters:
+        # Check average bounce rate across all counters
+        avg_bounce = sum(c.current_bounce_rate for c in behavior.counters) / len(behavior.counters)
+        if avg_bounce > 60:
             insights.append(Insight(
                 block="behavior",
                 severity="warning",
-                message=f"Высокий показатель отказов ({last_bounce}%). Возможно, проблемы с контентом или навигацией.",
+                message=f"Высокий показатель отказов ({avg_bounce:.1f}%). Возможно, проблемы с контентом или навигацией.",
             ))
 
     if behavior.avg_time_delta_pct is not None and behavior.avg_time_delta_pct < -15:
