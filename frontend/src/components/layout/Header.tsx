@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import PeriodSelector from '@/components/common/PeriodSelector'
 import CounterSelector from '@/components/common/CounterSelector'
+import { useAuth } from '@/context/AuthContext'
 import type { MetricCounter } from '@/types'
 
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export default function Header({ libraryName, counters, selectedCounter, onCounterChange }: Props) {
+  const { session } = useAuth()
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div className="max-w-7xl mx-auto px-4 py-4">
@@ -26,12 +29,21 @@ export default function Header({ libraryName, counters, selectedCounter, onCount
               selected={selectedCounter}
               onChange={onCounterChange}
             />
-            <Link
-              to="/admin/login"
-              className="ml-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              Войти
-            </Link>
+            {session ? (
+              <Link
+                to="/admin"
+                className="ml-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Админ-панель
+              </Link>
+            ) : (
+              <Link
+                to="/admin/login"
+                className="ml-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Войти
+              </Link>
+            )}
           </div>
         </div>
       </div>

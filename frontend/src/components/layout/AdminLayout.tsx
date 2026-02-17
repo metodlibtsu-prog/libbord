@@ -11,8 +11,17 @@ const navItems = [
 ]
 
 export default function AdminLayout() {
-  const { session } = useAuth()
+  const { session, loading } = useAuth()
   const navigate = useNavigate()
+
+  // Wait for auth to load before redirecting
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-gray-500">Загрузка...</div>
+      </div>
+    )
+  }
 
   if (!session) {
     navigate('/admin/login')
