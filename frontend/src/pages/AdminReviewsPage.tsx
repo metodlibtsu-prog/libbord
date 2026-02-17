@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchLibraries, fetchReviews } from '@/api/dashboard'
-import { createReview } from '@/api/admin'
+import { createReview, deleteReview } from '@/api/admin'
 import { formatDate, formatPlatform } from '@/utils/formatters'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 
@@ -30,7 +30,7 @@ export default function AdminReviewsPage() {
     enabled: !!libraryId,
   })
 
-  const mutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: () =>
       createReview({
         library_id: libraryId,
@@ -44,6 +44,13 @@ export default function AdminReviewsPage() {
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
       setText('')
+      queryClient.invalidateQueries({ queryKey: ['reviews'] })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (reviewId: string) => deleteReview(reviewId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews'] })
     },
   })
@@ -145,11 +152,11 @@ export default function AdminReviewsPage() {
             {success && <p className="text-sm text-green-600">Отзыв сохранён</p>}
 
             <button
-              onClick={() => mutation.mutate()}
-              disabled={mutation.isPending}
+              onClick={() => createMutation.mutate()}
+              disabled={createMutation.isPending}
               className="w-full py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
             >
-              {mutation.isPending ? 'Сохранение...' : 'Сохранить'}
+              {createMutation.isPending ? 'Сохранение...' : 'Сохранить'}
             </button>
           </div>
         </div>
@@ -166,6 +173,18 @@ export default function AdminReviewsPage() {
                   <span className="text-sm font-medium">{formatPlatform(r.platform)}</span>
                   {r.rating && <span className="text-yellow-500 text-sm">{'★'.repeat(r.rating)}</span>}
                   <span className="text-xs text-gray-400 ml-auto">{formatDate(r.date)}</span>
+                  <button
+                    onClick={() => {
+                      if (confirm('Удалить этот отзыв?')) {
+                        deleteMutation.mutate(r.id)
+                      }
+                    }}
+                    disabled={deleteMutation.isPending}
+                    className="text-red-600 hover:text-red-700 text-xs font-medium disabled:opacity-50"
+                    title="Удалить отзыв"
+                  >
+                    ✕
+                  </button>
                 </div>
                 {r.text && <p className="text-sm text-gray-600">{r.text}</p>}
               </div>

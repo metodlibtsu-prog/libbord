@@ -48,6 +48,10 @@ export async function createReview(payload: {
   return data
 }
 
+export async function deleteReview(reviewId: string): Promise<void> {
+  await apiClient.delete(`/reviews/${reviewId}`)
+}
+
 // Yandex.Metrika OAuth
 export async function startYandexOAuth(libraryId: string): Promise<{ auth_url: string }> {
   const { data } = await apiClient.get('/yandex/oauth/start', {
