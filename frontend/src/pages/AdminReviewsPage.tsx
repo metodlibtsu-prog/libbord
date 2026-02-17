@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchLibraries, fetchReviews } from '@/api/dashboard'
 import { createReview, deleteReview } from '@/api/admin'
@@ -23,6 +23,17 @@ export default function AdminReviewsPage() {
 
   const { data: libraries } = useQuery({ queryKey: ['libraries'], queryFn: fetchLibraries })
   const libraryId = libraries?.[0]?.id || ''
+
+  // Automatically set sentiment based on rating
+  useEffect(() => {
+    if (rating <= 2) {
+      setSentiment('negative')
+    } else if (rating === 3) {
+      setSentiment('neutral')
+    } else {
+      setSentiment('positive')
+    }
+  }, [rating])
 
   const { data: reviews, isLoading } = useQuery({
     queryKey: ['reviews', libraryId],
@@ -100,42 +111,6 @@ export default function AdminReviewsPage() {
                     <option key={r} value={r}>{'★'.repeat(r)} ({r})</option>
                   ))}
                 </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Тональность</label>
-              <div className="space-y-2">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    value="positive"
-                    checked={sentiment === 'positive'}
-                    onChange={(e) => setSentiment(e.target.value)}
-                    className="h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Положительный</span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    value="neutral"
-                    checked={sentiment === 'neutral'}
-                    onChange={(e) => setSentiment(e.target.value)}
-                    className="h-4 w-4 text-gray-600 border-gray-300 focus:ring-gray-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Нейтральный</span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    value="negative"
-                    checked={sentiment === 'negative'}
-                    onChange={(e) => setSentiment(e.target.value)}
-                    className="h-4 w-4 text-red-600 border-gray-300 focus:ring-red-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Негативный</span>
-                </label>
               </div>
             </div>
 
