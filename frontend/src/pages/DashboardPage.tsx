@@ -68,7 +68,6 @@ export default function DashboardPage() {
         {/* Block 3: User Behavior */}
         <section>
           <BehaviorCharts data={behavior.data} isLoading={behavior.isLoading} />
-          {insights.data && <InsightBanner insights={insights.data} block="behavior" />}
         </section>
 
         {/* Block 4: Engagement & Reviews */}
