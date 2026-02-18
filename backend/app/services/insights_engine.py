@@ -170,4 +170,8 @@ def generate_vk_insights(kpis: VkKpi) -> list[dict]:
                 }
             )
 
+    # Add block to all insights
+    for insight in insights:
+        insight["block"] = "vk"
+
     return insights

@@ -133,15 +133,7 @@ export default function AdminVkPage() {
 
       {/* Insights */}
       {stats.insights && stats.insights.length > 0 && (
-        <div className="space-y-2">
-          {stats.insights.map((insight, idx) => (
-            <InsightBanner
-              key={idx}
-              severity={insight.severity as 'info' | 'warning' | 'alert'}
-              message={insight.message}
-            />
-          ))}
-        </div>
+        <InsightBanner insights={stats.insights} block="vk" />
       )}
 
       {/* Reach and Engagement Charts */}
