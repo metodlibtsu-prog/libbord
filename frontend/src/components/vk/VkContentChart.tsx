@@ -24,8 +24,8 @@ export default function VkContentChart({ data }: VkContentChartProps) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h2 className="text-lg font-semibold text-gray-900 mb-2">Активность контента</h2>
-      <p className="text-sm text-gray-500 mb-4">Количество опубликованного контента</p>
+      <h2 className="text-lg font-semibold text-gray-900 mb-2">Просмотры контента</h2>
+      <p className="text-sm text-gray-500 mb-4">Сколько раз пользователи просмотрели контент</p>
 
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }} barCategoryGap="10%">
@@ -57,19 +57,19 @@ export default function VkContentChart({ data }: VkContentChartProps) {
 
       <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
         <div>
-          <p className="text-gray-500">Постов в день</p>
+          <p className="text-gray-500">Просмотры постов/день</p>
           <p className="font-semibold text-gray-900">{formatNumber(avgPosts)}</p>
         </div>
         <div>
-          <p className="text-gray-500">Историй в день</p>
+          <p className="text-gray-500">Просмотры историй/день</p>
           <p className="font-semibold text-gray-900">{formatNumber(avgStories)}</p>
         </div>
         <div>
-          <p className="text-gray-500">Клипов в день</p>
+          <p className="text-gray-500">Просмотры клипов/день</p>
           <p className="font-semibold text-gray-900">{formatNumber(avgClips)}</p>
         </div>
         <div>
-          <p className="text-gray-500">Видео в день</p>
+          <p className="text-gray-500">Просмотры видео/день</p>
           <p className="font-semibold text-gray-900">{formatNumber(avgVideos)}</p>
         </div>
       </div>
