@@ -82,91 +82,75 @@ def generate_vk_insights(kpis: VkKpi) -> list[dict]:
     """
     insights: list[dict] = []
 
-    # Reach and engagement correlation
     reach_delta = kpis.reach_delta_pct
-    er_delta = kpis.er_delta_pct
+    views_delta = kpis.views_delta_pct
+    subscribers_delta = kpis.subscribers_delta_pct
 
-    if reach_delta is not None and er_delta is not None:
-        if reach_delta < -10 and er_delta > 5:
+    # Reach trends
+    if reach_delta is not None:
+        if reach_delta > 15:
             insights.append(
                 {
                     "severity": "info",
-                    "message": f"Охват снизился на {abs(reach_delta):.1f}%, но вовлечённость выросла на {er_delta:.1f}% — аудитория стала меньше, но активнее",
+                    "message": f"Охват вырос на {reach_delta:.1f}% — хороший рост аудитории",
                 }
             )
-        elif reach_delta > 10 and er_delta < -5:
+        elif reach_delta < -15:
             insights.append(
                 {
                     "severity": "warning",
-                    "message": f"Охват вырос на {reach_delta:.1f}%, но вовлечённость снизилась на {abs(er_delta):.1f}% — контент не резонирует с новой аудиторией",
+                    "message": f"Охват снизился на {abs(reach_delta):.1f}% — возможно, снизилась активность публикаций",
+                }
+            )
+
+    # Views trends
+    if views_delta is not None:
+        if views_delta > 20:
+            insights.append(
+                {
+                    "severity": "info",
+                    "message": f"Показы выросли на {views_delta:.1f}% — контент активно просматривается",
+                }
+            )
+        elif views_delta < -20:
+            insights.append(
+                {
+                    "severity": "warning",
+                    "message": f"Показы снизились на {abs(views_delta):.1f}% — пересмотрите контент-стратегию",
                 }
             )
 
     # Subscribers growth
-    subscribers_delta = kpis.subscribers_delta_pct
     if subscribers_delta is not None:
-        if subscribers_delta > 3:
+        if subscribers_delta > 5:
             insights.append(
                 {
                     "severity": "info",
-                    "message": f"Прирост подписчиков +{subscribers_delta:.1f}% — хороший результат при текущем охвате",
+                    "message": f"Прирост подписчиков +{subscribers_delta:.1f}% — отличный результат",
                 }
             )
-        elif subscribers_delta < -5:
+        elif subscribers_delta < -3:
             insights.append(
                 {
-                    "severity": "warning",
-                    "message": f"Отток подписчиков {subscribers_delta:.1f}% — проверьте качество контента",
-                }
-            )
-
-    # High engagement rate
-    er_pct = kpis.er_pct
-    if er_pct > 10:
-        insights.append(
-            {
-                "severity": "info",
-                "message": f"Высокая вовлечённость {er_pct:.1f}% — контент резонирует с аудиторией",
-            }
-        )
-    elif er_pct < 2:
-        insights.append(
-            {
-                "severity": "alert",
-                "message": f"Низкая вовлечённость {er_pct:.1f}% — контент не вызывает интереса. Попробуйте новые форматы (истории, клипы, опросы)",
-            }
-        )
-
-    # Reposts analysis
-    if kpis.reposts > 0:
-        reposts_ratio = kpis.reposts / (kpis.comments + 1)  # Avoid division by zero
-        if reposts_ratio > 0.5:
-            insights.append(
-                {
-                    "severity": "info",
-                    "message": "Высокий уровень репостов — контент имеет виральный потенциал",
-                }
-            )
-
-    # Comments analysis
-    if kpis.reach > 0:
-        comments_ratio = kpis.comments / kpis.reach * 100
-        if comments_ratio > 1:
-            insights.append(
-                {
-                    "severity": "info",
-                    "message": "Активные обсуждения в комментариях — вовлечённая аудитория",
+                    "severity": "alert",
+                    "message": f"Отток подписчиков {subscribers_delta:.1f}% — требует внимания",
                 }
             )
 
     # Views-to-reach ratio
-    views_delta = kpis.views_delta_pct
     if views_delta is not None and reach_delta is not None:
-        if views_delta > 15 and reach_delta < 5:
+        if views_delta > reach_delta + 10:
             insights.append(
                 {
                     "severity": "info",
-                    "message": "Просмотры растут быстрее охвата — пользователи возвращаются к контенту",
+                    "message": "Показы растут быстрее охвата — пользователи активно взаимодействуют с контентом",
+                }
+            )
+        elif reach_delta > views_delta + 10:
+            insights.append(
+                {
+                    "severity": "info",
+                    "message": "Охват растёт быстрее показов — привлекается новая аудитория",
                 }
             )
 
