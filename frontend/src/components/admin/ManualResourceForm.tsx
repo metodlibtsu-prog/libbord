@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChannelType } from '../../types';
 import { channelTypeLabels } from '../../utils/translations';
+import { useAuth } from '../../context/AuthContext';
 
 interface ManualResourceFormProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export default function ManualResourceForm({
   onSuccess,
   libraryId,
 }: ManualResourceFormProps) {
+  const { session } = useAuth();
   const [channelType, setChannelType] = useState<ChannelType>('telegram');
   const [customName, setCustomName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,12 +36,18 @@ export default function ManualResourceForm({
     setLoading(true);
     setError('');
 
+    if (!session?.access_token) {
+      setError('Не авторизован. Пожалуйста, войдите снова.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/channels`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('supabase.auth.token')}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           library_id: libraryId,
