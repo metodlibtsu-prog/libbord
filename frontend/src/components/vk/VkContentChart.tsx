@@ -5,7 +5,7 @@ interface VkContentChartProps {
   data: VkContentPoint[]
 }
 
-export function VkContentChart({ data }: VkContentChartProps) {
+export default function VkContentChart({ data }: VkContentChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6">
