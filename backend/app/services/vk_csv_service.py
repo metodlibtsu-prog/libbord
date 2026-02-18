@@ -11,17 +11,19 @@ from typing import Dict, List, Tuple
 
 
 # Mapping of VK CSV metric names to VkMetric model fields
+# Note: VK CSV exports may have double-encoded UTF-8 or other encoding issues
 VK_METRIC_MAPPING = {
-    "Посетители": "visitors",
-    "Просмотры": "views",
-    "Посты": "posts",
-    "Истории": "stories",
-    "Клипы": "clips",
-    "Видео": "videos",
-    "Подписались": "subscribed",
-    "Отписались": "unsubscribed",
-    "Всего подписчиков": "total_subscribers",
-    "Перейти на сайт": "site_clicks",
+    'РџРѕСЃС‚С‹': 'posts',
+    'РљР»РёРїС‹': 'clips',
+    'Р’РёРґРµРѕ': 'videos',
+    'Р\x98СЃС‚РѕСЂРёРё': 'stories',
+    'РћС‚РїРёСЃР°Р»РёСЃСЊ': 'unsubscribed',
+    'РџРѕРґРїРёСЃР°Р»РёСЃСЊ': 'subscribed',
+    'РџРµСЂРµР№С‚Рё РЅР°В\xa0СЃР°Р№С‚': 'site_clicks',
+    'РџРѕСЃРµС‚РёС‚РµР»Рё': 'visitors',
+    'РџСЂРѕСЃРјРѕС‚СЂС‹': 'views',
+    'Р’СЃРµРіРѕ РїРѕРґРїРёСЃС‡РёРєРѕРІ': 'total_subscribers',
+
 }
 
 # Mapping for engagement metrics (stored in engagement_metrics table)
