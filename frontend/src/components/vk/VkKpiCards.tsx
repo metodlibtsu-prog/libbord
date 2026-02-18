@@ -50,9 +50,6 @@ export default function VkKpiCards({ kpis }: Props) {
       <KpiCard title="Охват" value={kpis.reach} delta={kpis.reach_delta_pct} />
       <KpiCard title="Показы" value={kpis.views} delta={kpis.views_delta_pct} />
       <KpiCard title="Подписчики" value={kpis.subscribers} delta={kpis.subscribers_delta_pct} />
-      <KpiCard title="Вовлечённость ER%" value={kpis.er_pct} delta={kpis.er_delta_pct} suffix="%" />
-      <KpiCard title="Репосты" value={kpis.reposts} delta={null} />
-      <KpiCard title="Комментарии" value={kpis.comments} delta={null} />
     </div>
   )
 }
