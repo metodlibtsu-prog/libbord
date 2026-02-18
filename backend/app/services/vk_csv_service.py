@@ -11,9 +11,7 @@ from typing import Dict, List, Tuple
 
 
 # Mapping of VK CSV metric names to VkMetric model fields
-# Supports both old (mojibake) and new (clean UTF-8) formats
 VK_METRIC_MAPPING = {
-    # New format (clean UTF-8)
     'Посты': 'posts',
     'Клипы': 'clips',
     'Видео': 'videos',
@@ -24,18 +22,6 @@ VK_METRIC_MAPPING = {
     'Посетители': 'visitors',
     'Просмотры': 'views',
     'Всего подписчиков': 'total_subscribers',
-
-    # Old format (mojibake / double-encoded UTF-8)
-    'РџРѕСЃС‚С‹': 'posts',
-    'РљР»РёРїС‹': 'clips',
-    'Р'РёРґРµРѕ': 'videos',
-    'Р\x98СЃС‚РѕСЂРёРё': 'stories',
-    'РћС‚РїРёСЃР°Р»РёСЃСЊ': 'unsubscribed',
-    'РџРѕРґРїРёСЃР°Р»РёСЃСЊ': 'subscribed',
-    'РџРµСЂРµР№С‚Рё РЅР°В\xa0СЃР°Р№С‚': 'site_clicks',
-    'РџРѕСЃРµС‚РёС‚РµР»Рё': 'visitors',
-    'РџСЂРѕСЃРјРѕС‚СЂС‹': 'views',
-    'Р'СЃРµРіРѕ РїРѕРґРїРёСЃС‡РёРєРѕРІ': 'total_subscribers',
 }
 
 # Mapping for engagement metrics (stored in engagement_metrics table)
