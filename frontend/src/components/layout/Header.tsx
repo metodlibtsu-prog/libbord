@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import PeriodSelector from '@/components/common/PeriodSelector'
 import CounterSelector from '@/components/common/CounterSelector'
 import { useAuth } from '@/context/AuthContext'
@@ -15,12 +16,17 @@ export default function Header({ libraryName, counters, selectedCounter, onCount
   const { session } = useAuth()
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <motion.header
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="glass-card sticky top-0 z-50 border-b border-dark-border"
+    >
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Libbord</h1>
-            <p className="text-sm text-gray-500">{libraryName}</p>
+            <h1 className="text-xl font-bold gradient-text">Libboard</h1>
+            <p className="text-sm text-dark-text-secondary">{libraryName}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <PeriodSelector />
@@ -32,14 +38,14 @@ export default function Header({ libraryName, counters, selectedCounter, onCount
             {session ? (
               <Link
                 to="/admin"
-                className="ml-2 px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+                className="ml-2 px-3 py-1.5 text-sm font-medium text-white bg-gradient-premium rounded-md hover:shadow-glow-cyan transition-all duration-300"
               >
                 Админ-панель
               </Link>
             ) : (
               <Link
                 to="/admin/login"
-                className="ml-2 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                className="ml-2 px-3 py-1.5 text-sm font-medium text-dark-text border border-dark-border rounded-md hover:border-gradient-cyan transition-all duration-300"
               >
                 Войти
               </Link>
@@ -47,6 +53,6 @@ export default function Header({ libraryName, counters, selectedCounter, onCount
           </div>
         </div>
       </div>
-    </header>
+    </motion.header>
   )
 }

@@ -47,14 +47,19 @@ export default function DashboardPage() {
   if (libLoading) return <LoadingSpinner />
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header
-        libraryName={libraryName}
-        counters={counters || []}
-        selectedCounter={selectedCounter}
-        onCounterChange={setSelectedCounter}
-      />
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="min-h-screen bg-dark-bg relative">
+      {/* Animated background gradient */}
+      <div className="fixed inset-0 bg-gradient-to-br from-dark-bg via-dark-bg to-dark-card opacity-50 pointer-events-none" />
+
+      {/* Content */}
+      <div className="relative z-10">
+        <Header
+          libraryName={libraryName}
+          counters={counters || []}
+          selectedCounter={selectedCounter}
+          onCounterChange={setSelectedCounter}
+        />
+        <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Block 1: KPI Overview */}
         <section>
           <KpiCards data={overview.data} isLoading={overview.isLoading} />
@@ -62,14 +67,14 @@ export default function DashboardPage() {
         </section>
 
         {/* Block 2: Channels */}
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Цифровые сервисы библиотеки</h2>
+        <h2 className="text-xl font-bold text-dark-text mb-4">Цифровые сервисы библиотеки</h2>
         <section>
           <ChannelChart data={channels.data} isLoading={channels.isLoading} />
           {insights.data && <InsightBanner insights={insights.data} block="channels" />}
         </section>
 
         {/* Block 3: User Behavior */}
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Поведение пользователей</h2>
+        <h2 className="text-xl font-bold text-dark-text mb-4">Поведение пользователей</h2>
         <section>
           <BehaviorCharts data={behavior.data} isLoading={behavior.isLoading} />
         </section>
@@ -77,7 +82,7 @@ export default function DashboardPage() {
         {/* Block 4: VK Stats */}
         {vkStats.data && !vkStats.isLoading && (
           <>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">ВКонтакте</h2>
+            <h2 className="text-xl font-bold text-dark-text mb-4">ВКонтакте</h2>
             <section>
               <VkKpiCards kpis={vkStats.data.kpis} />
               {vkStats.data.insights && vkStats.data.insights.length > 0 && (
@@ -94,13 +99,14 @@ export default function DashboardPage() {
         )}
 
         {/* Block 5: Geo-service Reviews */}
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Отзывы с геосервисов</h2>
+        <h2 className="text-xl font-bold text-dark-text mb-4">Отзывы с геосервисов</h2>
 
         {/* Block 6: Reviews */}
         <section>
           <ReviewsList data={reviews.data} isLoading={reviews.isLoading} />
         </section>
-      </main>
+        </main>
+      </div>
     </div>
   )
 }

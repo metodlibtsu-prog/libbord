@@ -21,10 +21,10 @@ export default function PeriodSelector() {
           key={p.value}
           onClick={() => setPeriod(p.value)}
           className={clsx(
-            'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
+            'px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-300',
             period === p.value
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+              ? 'bg-gradient-premium text-white shadow-premium'
+              : 'bg-dark-card text-dark-text-secondary hover:text-dark-text hover:border-gradient-cyan border border-dark-border',
           )}
         >
           {p.label}
