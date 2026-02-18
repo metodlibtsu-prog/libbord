@@ -11,6 +11,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import VkKpiCards from '@/components/vk/VkKpiCards'
 import VkReachChart from '@/components/vk/VkReachChart'
 import VkContentChart from '@/components/vk/VkContentChart'
+import GeoReviewsSection from '@/components/dashboard/GeoReviewsSection'
 import {
   useBehavior,
   useChannels,
@@ -89,7 +90,12 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* Block 5: Reviews */}
+        {/* Block 5: Geo-service Reviews */}
+        <section>
+          <GeoReviewsSection />
+        </section>
+
+        {/* Block 6: Reviews */}
         <section>
           <ReviewsList data={reviews.data} isLoading={reviews.isLoading} />
         </section>

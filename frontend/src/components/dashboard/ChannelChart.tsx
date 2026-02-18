@@ -15,7 +15,10 @@ export default function ChannelChart({ data, isLoading }: Props) {
     return <p className="text-sm text-gray-400 text-center py-8">Нет данных по каналам</p>
   }
 
-  const chartData = data.map((ch) => ({
+  // Filter out VK channels since they have their own block
+  const filteredData = data.filter((ch) => ch.channel_type !== 'vk')
+
+  const chartData = filteredData.map((ch) => ({
     name: ch.custom_name || CHANNEL_LABELS[ch.channel_type as ChannelType] || ch.channel_type,
     views: ch.views,
     visits: ch.visits,
@@ -25,7 +28,7 @@ export default function ChannelChart({ data, isLoading }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Где библиотеку изучают</h2>
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">Цифровые сервисы библиотеки</h2>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} layout="vertical" margin={{ left: 120 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} />
