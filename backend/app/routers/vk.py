@@ -216,7 +216,7 @@ async def upload_vk_csv(
 async def get_vk_stats(
     library_id: uuid.UUID = Query(...),
     channel_id: uuid.UUID | None = Query(None),
-    period: str = Query("month", regex="^(week|month|quarter|year)$"),
+    period: str = Query("month", regex="^(today|yesterday|week|month|quarter|year)$"),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -231,16 +231,26 @@ async def get_vk_stats(
     """
     # Determine date range based on period
     today = date.today()
-    if period == "week":
+    if period == "today":
+        date_from = today
+        date_to = today
+    elif period == "yesterday":
+        date_from = today - timedelta(days=1)
+        date_to = today - timedelta(days=1)
+    elif period == "week":
         date_from = today - timedelta(days=7)
+        date_to = today
     elif period == "month":
         date_from = today - timedelta(days=30)
+        date_to = today
     elif period == "quarter":
         date_from = today - timedelta(days=90)
+        date_to = today
     else:  # year
         date_from = today - timedelta(days=365)
+        date_to = today
 
-    # Get latest upload info
+    # Get latest upload info (for metadata only)
     upload_query = select(VkUpload).where(VkUpload.library_id == library_id)
     if channel_id:
         upload_query = upload_query.where(VkUpload.channel_id == channel_id)
@@ -249,13 +259,6 @@ async def get_vk_stats(
 
     upload_result = await db.execute(upload_query)
     latest_upload = upload_result.scalar_one_or_none()
-
-    # If upload exists, use its period
-    if latest_upload:
-        date_from = latest_upload.period_start
-        date_to = latest_upload.period_end
-    else:
-        date_to = today
 
     # Build base queries
     vk_query = select(VkMetric).where(

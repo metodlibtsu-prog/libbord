@@ -1,9 +1,14 @@
 import uuid
+from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.engagement_metric import EngagementMetric
+from app.models.vk_metric import VkMetric
+from app.models.vk_upload import VkUpload
 from app.schemas.dashboard import (
     BehaviorData,
     ChannelMetric,
@@ -14,8 +19,17 @@ from app.schemas.dashboard import (
     ReviewsResponse,
 )
 from app.schemas.insights import Insight
+from app.schemas.vk import (
+    VkContentPoint,
+    VkEngagementPoint,
+    VkKpi,
+    VkPeriodInfo,
+    VkReachPoint,
+    VkStatsResponse,
+    VkTopPost,
+)
 from app.services import dashboard_service
-from app.services.insights_engine import generate_insights
+from app.services.insights_engine import generate_insights, generate_vk_insights
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -89,3 +103,166 @@ async def insights(
     behavior_data = await dashboard_service.get_behavior(db, library_id, period, counter_id)
     engagement_data = await dashboard_service.get_engagement(db, library_id, period)
     return generate_insights(overview_data, behavior_data, engagement_data)
+
+
+@router.get("/vk", response_model=VkStatsResponse)
+async def vk_stats(
+    library_id: uuid.UUID,
+    period: Period = Period.month,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get VK statistics for public dashboard"""
+    # Determine date range based on period
+    today = date.today()
+    if period == Period.today:
+        date_from = today
+        date_to = today
+    elif period == Period.yesterday:
+        date_from = today - timedelta(days=1)
+        date_to = today - timedelta(days=1)
+    elif period == Period.week:
+        date_from = today - timedelta(days=7)
+        date_to = today
+    elif period == Period.month:
+        date_from = today - timedelta(days=30)
+        date_to = today
+    elif period == Period.quarter:
+        date_from = today - timedelta(days=90)
+        date_to = today
+    else:  # year
+        date_from = today - timedelta(days=365)
+        date_to = today
+
+    # Get latest upload info
+    upload_query = select(VkUpload).where(
+        VkUpload.library_id == library_id,
+        VkUpload.status == "completed"
+    ).order_by(VkUpload.uploaded_at.desc()).limit(1)
+    upload_result = await db.execute(upload_query)
+    latest_upload = upload_result.scalar_one_or_none()
+
+    # Fetch VK metrics
+    vk_query = select(VkMetric).where(
+        VkMetric.library_id == library_id,
+        VkMetric.date >= date_from,
+        VkMetric.date <= date_to,
+    ).order_by(VkMetric.date.asc())
+    vk_result = await db.execute(vk_query)
+    vk_metrics = vk_result.scalars().all()
+
+    # Fetch engagement metrics
+    eng_query = select(EngagementMetric).where(
+        EngagementMetric.library_id == library_id,
+        EngagementMetric.date >= date_from,
+        EngagementMetric.date <= date_to,
+    ).order_by(EngagementMetric.date.asc())
+    eng_result = await db.execute(eng_query)
+    eng_metrics = eng_result.scalars().all()
+
+    if not vk_metrics:
+        raise HTTPException(status_code=404, detail="No VK data found")
+
+    # Calculate KPIs
+    total_reach = sum(m.visitors for m in vk_metrics)
+    total_views = sum(m.views for m in vk_metrics)
+    latest_subscribers = vk_metrics[-1].total_subscribers if vk_metrics else 0
+    total_likes = sum(m.likes for m in eng_metrics)
+    total_reposts = sum(m.reposts for m in eng_metrics)
+    total_comments = sum(m.comments for m in eng_metrics)
+    total_engagement = total_likes + total_reposts + total_comments
+    er_pct = (total_engagement / total_reach * 100) if total_reach > 0 else 0
+
+    kpis = VkKpi(
+        reach=total_reach,
+        views=total_views,
+        subscribers=latest_subscribers,
+        er_pct=round(er_pct, 2),
+        reposts=total_reposts,
+        comments=total_comments,
+        reach_delta_pct=None,
+        views_delta_pct=None,
+        subscribers_delta_pct=None,
+        er_delta_pct=None,
+    )
+
+    # Build reach trend
+    reach_trend = [
+        VkReachPoint(date=str(m.date), reach=m.visitors, views=m.views) for m in vk_metrics
+    ]
+
+    # Build engagement trend
+    engagement_trend = []
+    for m in eng_metrics:
+        vk_m = next((v for v in vk_metrics if v.date == m.date), None)
+        reach = vk_m.visitors if vk_m else 0
+        total_eng = m.likes + m.reposts + m.comments
+        er = (total_eng / reach * 100) if reach > 0 else 0
+        engagement_trend.append(
+            VkEngagementPoint(
+                date=str(m.date),
+                likes=m.likes,
+                reposts=m.reposts,
+                comments=m.comments,
+                er=round(er, 2),
+            )
+        )
+
+    # Build content trend
+    content_trend = [
+        VkContentPoint(
+            date=str(m.date),
+            posts=m.posts,
+            stories=m.stories,
+            clips=m.clips,
+            videos=m.videos,
+        )
+        for m in vk_metrics
+    ]
+
+    # Build top posts (simplified)
+    top_posts = []
+    for m in eng_metrics[:10]:
+        vk_m = next((v for v in vk_metrics if v.date == m.date), None)
+        reach = vk_m.visitors if vk_m else 0
+        total_eng = m.likes + m.reposts + m.comments
+        er = (total_eng / reach * 100) if reach > 0 else 0
+        content_type = "Пост"
+        if vk_m:
+            if vk_m.stories > 0:
+                content_type = "История"
+            elif vk_m.clips > 0:
+                content_type = "Клип"
+            elif vk_m.videos > 0:
+                content_type = "Видео"
+        top_posts.append(
+            VkTopPost(
+                date=str(m.date),
+                type=content_type,
+                reach=reach,
+                er=round(er, 2),
+                likes=m.likes,
+                comments=m.comments,
+            )
+        )
+    top_posts.sort(key=lambda x: x.er, reverse=True)
+    top_posts = top_posts[:10]
+
+    # Period info
+    period_info = VkPeriodInfo(
+        start=str(date_from),
+        end=str(date_to),
+        upload_date=str(latest_upload.uploaded_at.date()) if latest_upload else None,
+    )
+
+    # Generate insights
+    insights = generate_vk_insights(kpis)
+
+    return VkStatsResponse(
+        kpis=kpis,
+        reach_trend=reach_trend,
+        engagement_trend=engagement_trend,
+        content_trend=content_trend,
+        top_posts=top_posts,
+        period_info=period_info,
+        insights=insights,
+    )

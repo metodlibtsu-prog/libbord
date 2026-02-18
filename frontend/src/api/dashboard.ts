@@ -9,6 +9,7 @@ import type {
   MetricCounter,
   Period,
   ReviewsResponse,
+  VkStatsResponse,
 } from '@/types'
 import apiClient from './client'
 
@@ -94,5 +95,15 @@ export async function fetchInsights(
   const params: Record<string, string> = { library_id: libraryId, period }
   if (counterId) params.counter_id = counterId
   const { data } = await apiClient.get('/dashboard/insights', { params })
+  return data
+}
+
+export async function fetchVkDashboard(
+  libraryId: string,
+  period: Period,
+): Promise<VkStatsResponse> {
+  const { data } = await apiClient.get('/dashboard/vk', {
+    params: { library_id: libraryId, period },
+  })
   return data
 }

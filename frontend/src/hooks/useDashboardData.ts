@@ -6,6 +6,7 @@ import {
   fetchInsights,
   fetchOverview,
   fetchReviews,
+  fetchVkDashboard,
 } from '@/api/dashboard'
 import { usePeriod } from '@/context/PeriodContext'
 
@@ -58,6 +59,15 @@ export function useInsights(libraryId: string, counterId?: string) {
   return useQuery({
     queryKey: ['insights', libraryId, period, counterId],
     queryFn: () => fetchInsights(libraryId, period, counterId),
+    enabled: !!libraryId,
+  })
+}
+
+export function useVkStats(libraryId: string) {
+  const { period } = usePeriod()
+  return useQuery({
+    queryKey: ['vk-dashboard', libraryId, period],
+    queryFn: () => fetchVkDashboard(libraryId, period),
     enabled: !!libraryId,
   })
 }
