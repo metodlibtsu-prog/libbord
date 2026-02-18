@@ -8,7 +8,7 @@ import InsightBanner from '@/components/dashboard/InsightBanner'
 import VkUploadForm from '@/components/vk/VkUploadForm'
 import VkKpiCards from '@/components/vk/VkKpiCards'
 import VkReachChart from '@/components/vk/VkReachChart'
-import VkEngagementChart from '@/components/vk/VkEngagementChart'
+import VkContentChart from '@/components/vk/VkContentChart'
 import VkTopPostsTable from '@/components/vk/VkTopPostsTable'
 
 export default function AdminVkPage() {
@@ -136,14 +136,16 @@ export default function AdminVkPage() {
         <InsightBanner insights={stats.insights} block="vk" />
       )}
 
-      {/* Reach and Engagement Charts */}
+      {/* Reach and Content Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <VkReachChart data={stats.reach_trend} />
-        <VkEngagementChart data={stats.engagement_trend} />
+        <VkContentChart data={stats.content_trend} />
       </div>
 
-      {/* Top Posts Table */}
-      <VkTopPostsTable posts={stats.top_posts} />
+      {/* Top Posts Table (only if engagement data exists) */}
+      {stats.engagement_trend && stats.engagement_trend.length > 0 && (
+        <VkTopPostsTable posts={stats.top_posts} />
+      )}
     </div>
   )
 }

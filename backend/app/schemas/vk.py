@@ -80,6 +80,16 @@ class VkEngagementPoint(BaseModel):
     er: float
 
 
+class VkContentPoint(BaseModel):
+    """Content activity trend data point"""
+
+    date: str
+    posts: int
+    stories: int
+    clips: int
+    videos: int
+
+
 class VkTopPost(BaseModel):
     """Top post by engagement"""
 
@@ -105,6 +115,7 @@ class VkStatsResponse(BaseModel):
     kpis: VkKpi
     reach_trend: list[VkReachPoint]
     engagement_trend: list[VkEngagementPoint]
+    content_trend: list[VkContentPoint]
     top_posts: list[VkTopPost]
     period_info: VkPeriodInfo
     insights: list[dict]  # Re-use existing Insight schema

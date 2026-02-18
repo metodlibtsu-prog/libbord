@@ -23,6 +23,7 @@ from app.models.engagement_metric import EngagementMetric
 from app.models.vk_metric import VkMetric
 from app.models.vk_upload import VkUpload
 from app.schemas.vk import (
+    VkContentPoint,
     VkEngagementPoint,
     VkKpi,
     VkPeriodInfo,
@@ -365,6 +366,18 @@ async def get_vk_stats(
     top_posts.sort(key=lambda x: x.er, reverse=True)
     top_posts = top_posts[:10]
 
+    # Build content trend (posts, stories, clips, videos)
+    content_trend = [
+        VkContentPoint(
+            date=str(m.date),
+            posts=m.posts,
+            stories=m.stories,
+            clips=m.clips,
+            videos=m.videos,
+        )
+        for m in vk_metrics
+    ]
+
     # Period info
     period_info = VkPeriodInfo(
         start=str(date_from),
@@ -379,6 +392,7 @@ async def get_vk_stats(
         kpis=kpis,
         reach_trend=reach_trend,
         engagement_trend=engagement_trend,
+        content_trend=content_trend,
         top_posts=top_posts,
         period_info=period_info,
         insights=insights,

@@ -166,6 +166,14 @@ export interface VkEngagementPoint {
   er: number
 }
 
+export interface VkContentPoint {
+  date: string
+  posts: number
+  stories: number
+  clips: number
+  videos: number
+}
+
 export interface VkTopPost {
   date: string
   type: string
@@ -185,6 +193,7 @@ export interface VkStatsResponse {
   kpis: VkKpi
   reach_trend: VkReachPoint[]
   engagement_trend: VkEngagementPoint[]
+  content_trend: VkContentPoint[]
   top_posts: VkTopPost[]
   period_info: VkPeriodInfo
   insights: Insight[]
