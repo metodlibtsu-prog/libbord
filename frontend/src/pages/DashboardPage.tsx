@@ -63,6 +63,7 @@ export default function DashboardPage() {
 
         {/* Block 2: Channels */}
         <section>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Цифровые сервисы библиотеки</h2>
           <ChannelChart data={channels.data} isLoading={channels.isLoading} />
           {insights.data && <InsightBanner insights={insights.data} block="channels" />}
         </section>

@@ -28,7 +28,6 @@ export default function ChannelChart({ data, isLoading }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Цифровые сервисы библиотеки</h2>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} layout="vertical" margin={{ left: 120 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} />
