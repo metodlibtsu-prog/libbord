@@ -286,7 +286,7 @@ async def get_vk_stats(
     if not vk_metrics and not eng_metrics:
         raise HTTPException(status_code=404, detail="No VK data found for this period")
 
-    # Calculate KPIs
+    # Calculate KPIs for current period
     total_reach = sum(m.visitors for m in vk_metrics)
     total_views = sum(m.views for m in vk_metrics)
     latest_subscribers = vk_metrics[-1].total_subscribers if vk_metrics else 0
@@ -298,7 +298,40 @@ async def get_vk_stats(
     total_engagement = total_likes + total_reposts + total_comments
     er_pct = (total_engagement / total_reach * 100) if total_reach > 0 else 0
 
-    # TODO: Calculate deltas to previous period (simplified for now)
+    # Calculate previous period for comparison
+    period_days = (date_to - date_from).days + 1
+    prev_date_to = date_from - timedelta(days=1)
+    prev_date_from = prev_date_to - timedelta(days=period_days - 1)
+
+    # Fetch previous period metrics
+    prev_vk_query = select(VkMetric).where(
+        VkMetric.library_id == library_id,
+        VkMetric.date >= prev_date_from,
+        VkMetric.date <= prev_date_to,
+    )
+    if channel_id:
+        prev_vk_query = prev_vk_query.where(VkMetric.channel_id == channel_id)
+
+    prev_vk_result = await db.execute(prev_vk_query)
+    prev_vk_metrics = prev_vk_result.scalars().all()
+
+    # Calculate deltas
+    reach_delta_pct = None
+    views_delta_pct = None
+    subscribers_delta_pct = None
+
+    if prev_vk_metrics:
+        prev_reach = sum(m.visitors for m in prev_vk_metrics)
+        prev_views = sum(m.views for m in prev_vk_metrics)
+        prev_subscribers = prev_vk_metrics[-1].total_subscribers if prev_vk_metrics else 0
+
+        if prev_reach > 0:
+            reach_delta_pct = round(((total_reach - prev_reach) / prev_reach) * 100, 1)
+        if prev_views > 0:
+            views_delta_pct = round(((total_views - prev_views) / prev_views) * 100, 1)
+        if prev_subscribers > 0:
+            subscribers_delta_pct = round(((latest_subscribers - prev_subscribers) / prev_subscribers) * 100, 1)
+
     kpis = VkKpi(
         reach=total_reach,
         views=total_views,
@@ -306,9 +339,9 @@ async def get_vk_stats(
         er_pct=round(er_pct, 2),
         reposts=total_reposts,
         comments=total_comments,
-        reach_delta_pct=None,
-        views_delta_pct=None,
-        subscribers_delta_pct=None,
+        reach_delta_pct=reach_delta_pct,
+        views_delta_pct=views_delta_pct,
+        subscribers_delta_pct=subscribers_delta_pct,
         er_delta_pct=None,
     )
 
