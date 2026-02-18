@@ -122,3 +122,79 @@ export interface Insight {
   severity: 'info' | 'warning' | 'alert'
   message: string
 }
+
+// VK Integration Types
+
+export interface VkUpload {
+  id: string
+  library_id: string
+  channel_id: string
+  filename: string
+  uploaded_at: string
+  period_start: string
+  period_end: string
+  total_rows: number | null
+  status: 'processing' | 'completed' | 'error'
+  error_message: string | null
+  created_at: string
+}
+
+export interface VkKpi {
+  reach: number
+  views: number
+  subscribers: number
+  er_pct: number
+  reposts: number
+  comments: number
+  reach_delta_pct: number | null
+  views_delta_pct: number | null
+  subscribers_delta_pct: number | null
+  er_delta_pct: number | null
+}
+
+export interface VkReachPoint {
+  date: string
+  reach: number
+  views: number
+}
+
+export interface VkEngagementPoint {
+  date: string
+  likes: number
+  reposts: number
+  comments: number
+  er: number
+}
+
+export interface VkTopPost {
+  date: string
+  type: string
+  reach: number
+  er: number
+  likes: number
+  comments: number
+}
+
+export interface VkPeriodInfo {
+  start: string
+  end: string
+  upload_date: string | null
+}
+
+export interface VkStatsResponse {
+  kpis: VkKpi
+  reach_trend: VkReachPoint[]
+  engagement_trend: VkEngagementPoint[]
+  top_posts: VkTopPost[]
+  period_info: VkPeriodInfo
+  insights: Array<{ severity: string; message: string }>
+}
+
+export interface VkUploadSummary {
+  upload_id: string
+  total_rows: number
+  period_start: string
+  period_end: string
+  vk_metrics_count: number
+  engagement_metrics_count: number
+}

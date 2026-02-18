@@ -9,6 +9,7 @@ import AdminChannelsPage from '@/pages/AdminChannelsPage'
 import AdminCountersPage from '@/pages/AdminCountersPage'
 import AdminEngagementPage from '@/pages/AdminEngagementPage'
 import AdminReviewsPage from '@/pages/AdminReviewsPage'
+import AdminVkPage from '@/pages/AdminVkPage'
 import AdminLayout from '@/components/layout/AdminLayout'
 
 const queryClient = new QueryClient({
@@ -38,6 +39,7 @@ export default function App() {
                 <Route path="counters" element={<AdminCountersPage />} />
                 <Route path="engagement" element={<AdminEngagementPage />} />
                 <Route path="reviews" element={<AdminReviewsPage />} />
+                <Route path="vk" element={<AdminVkPage />} />
               </Route>
             </Routes>
           </BrowserRouter>

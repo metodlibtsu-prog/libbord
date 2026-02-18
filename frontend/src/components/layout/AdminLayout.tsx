@@ -8,6 +8,7 @@ const navItems = [
   { to: '/admin/counters', label: 'Счётчики' },
   { to: '/admin/engagement', label: 'Вовлечённость' },
   { to: '/admin/reviews', label: 'Отзывы' },
+  { to: '/admin/vk', label: 'ВКонтакте' },
 ]
 
 export default function AdminLayout() {

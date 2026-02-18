@@ -5,6 +5,8 @@ from app.models.traffic_metric import TrafficMetric
 from app.models.engagement_metric import EngagementMetric
 from app.models.review import Review
 from app.models.yandex_token import YandexToken
+from app.models.vk_upload import VkUpload
+from app.models.vk_metric import VkMetric
 
 __all__ = [
     "Library",
@@ -14,4 +16,6 @@ __all__ = [
     "EngagementMetric",
     "Review",
     "YandexToken",
+    "VkUpload",
+    "VkMetric",
 ]

@@ -12,6 +12,7 @@ from app.routers import (
     metric_counters,
     reviews,
     sync,
+    vk,
     yandex_auth,
 )
 from app.scheduler.setup import start_scheduler, stop_scheduler
@@ -48,6 +49,7 @@ app.include_router(channels.router)
 app.include_router(metric_counters.router)
 app.include_router(engagement_metrics.router)
 app.include_router(reviews.router)
+app.include_router(vk.router)
 app.include_router(yandex_auth.router)
 app.include_router(sync.router)
 

@@ -15,3 +15,5 @@ class Library(Base, IdMixin, TimestampMixin):
     traffic_metrics = relationship("TrafficMetric", back_populates="library", cascade="all, delete-orphan")
     engagement_metrics = relationship("EngagementMetric", back_populates="library", cascade="all, delete-orphan")
     reviews = relationship("Review", back_populates="library", cascade="all, delete-orphan")
+    vk_uploads = relationship("VkUpload", back_populates="library", cascade="all, delete-orphan")
+    vk_metrics = relationship("VkMetric", back_populates="library", cascade="all, delete-orphan")

@@ -39,3 +39,5 @@ class Channel(Base, IdMixin, TimestampMixin):
     library = relationship("Library", back_populates="channels")
     traffic_metrics = relationship("TrafficMetric", back_populates="channel", cascade="all, delete-orphan")
     engagement_metrics = relationship("EngagementMetric", back_populates="channel", cascade="all, delete-orphan")
+    vk_uploads = relationship("VkUpload", back_populates="channel", cascade="all, delete-orphan")
+    vk_metrics = relationship("VkMetric", back_populates="channel", cascade="all, delete-orphan")
