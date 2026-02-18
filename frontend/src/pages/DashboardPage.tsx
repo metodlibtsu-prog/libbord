@@ -5,7 +5,6 @@ import Header from '@/components/layout/Header'
 import KpiCards from '@/components/dashboard/KpiCards'
 import ChannelChart from '@/components/dashboard/ChannelChart'
 import BehaviorCharts from '@/components/dashboard/BehaviorCharts'
-import EngagementCharts from '@/components/dashboard/EngagementCharts'
 import ReviewsList from '@/components/dashboard/ReviewsList'
 import InsightBanner from '@/components/dashboard/InsightBanner'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
@@ -15,7 +14,6 @@ import VkContentChart from '@/components/vk/VkContentChart'
 import {
   useBehavior,
   useChannels,
-  useEngagement,
   useInsights,
   useOverview,
   useReviews,
@@ -42,7 +40,6 @@ export default function DashboardPage() {
   const overview = useOverview(libraryId, selectedCounter)
   const channels = useChannels(libraryId)
   const behavior = useBehavior(libraryId, selectedCounter)
-  const engagement = useEngagement(libraryId)
   const reviews = useReviews(libraryId)
   const insights = useInsights(libraryId, selectedCounter)
   const vkStats = useVkStats(libraryId)
@@ -75,13 +72,7 @@ export default function DashboardPage() {
           <BehaviorCharts data={behavior.data} isLoading={behavior.isLoading} />
         </section>
 
-        {/* Block 4: Engagement */}
-        <section>
-          <EngagementCharts data={engagement.data} isLoading={engagement.isLoading} />
-          {insights.data && <InsightBanner insights={insights.data} block="engagement" />}
-        </section>
-
-        {/* Block 5: VK Stats */}
+        {/* Block 4: VK Stats */}
         {vkStats.data && !vkStats.isLoading && (
           <section>
             <h2 className="text-xl font-bold text-gray-900 mb-4">ВКонтакте</h2>
@@ -98,7 +89,7 @@ export default function DashboardPage() {
           </section>
         )}
 
-        {/* Block 6: Reviews */}
+        {/* Block 5: Reviews */}
         <section>
           <ReviewsList data={reviews.data} isLoading={reviews.isLoading} />
         </section>
