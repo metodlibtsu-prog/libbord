@@ -28,7 +28,7 @@ export default function VkContentChart({ data }: VkContentChartProps) {
       <p className="text-sm text-gray-500 mb-4">Количество опубликованного контента</p>
 
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+        <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }} barCategoryGap="10%">
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="date"
@@ -48,10 +48,10 @@ export default function VkContentChart({ data }: VkContentChartProps) {
             }}
           />
           <Legend />
-          <Bar dataKey="posts" fill="#3b82f6" name="Посты" />
-          <Bar dataKey="stories" fill="#8b5cf6" name="Истории" />
-          <Bar dataKey="clips" fill="#ec4899" name="Клипы" />
-          <Bar dataKey="videos" fill="#f59e0b" name="Видео" />
+          <Bar dataKey="posts" stackId="content" fill="#3b82f6" name="Посты" />
+          <Bar dataKey="stories" stackId="content" fill="#8b5cf6" name="Истории" />
+          <Bar dataKey="clips" stackId="content" fill="#ec4899" name="Клипы" />
+          <Bar dataKey="videos" stackId="content" fill="#f59e0b" name="Видео" />
         </BarChart>
       </ResponsiveContainer>
 
