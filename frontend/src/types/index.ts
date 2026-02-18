@@ -187,7 +187,7 @@ export interface VkStatsResponse {
   engagement_trend: VkEngagementPoint[]
   top_posts: VkTopPost[]
   period_info: VkPeriodInfo
-  insights: Array<{ severity: string; message: string }>
+  insights: Insight[]
 }
 
 export interface VkUploadSummary {
