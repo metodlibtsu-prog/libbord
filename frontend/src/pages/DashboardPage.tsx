@@ -11,7 +11,6 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import VkKpiCards from '@/components/vk/VkKpiCards'
 import VkReachChart from '@/components/vk/VkReachChart'
 import VkContentChart from '@/components/vk/VkContentChart'
-import GeoReviewsSection from '@/components/dashboard/GeoReviewsSection'
 import {
   useBehavior,
   useChannels,
@@ -91,9 +90,7 @@ export default function DashboardPage() {
         )}
 
         {/* Block 5: Geo-service Reviews */}
-        <section>
-          <GeoReviewsSection />
-        </section>
+        <h2 className="text-xl font-bold text-gray-900">Отзывы с геосервисов</h2>
 
         {/* Block 6: Reviews */}
         <section>
