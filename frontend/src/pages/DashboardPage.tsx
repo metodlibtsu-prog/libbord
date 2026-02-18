@@ -62,36 +62,39 @@ export default function DashboardPage() {
         </section>
 
         {/* Block 2: Channels */}
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Цифровые сервисы библиотеки</h2>
         <section>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Цифровые сервисы библиотеки</h2>
           <ChannelChart data={channels.data} isLoading={channels.isLoading} />
           {insights.data && <InsightBanner insights={insights.data} block="channels" />}
         </section>
 
         {/* Block 3: User Behavior */}
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Поведение пользователей</h2>
         <section>
           <BehaviorCharts data={behavior.data} isLoading={behavior.isLoading} />
         </section>
 
         {/* Block 4: VK Stats */}
         {vkStats.data && !vkStats.isLoading && (
-          <section>
+          <>
             <h2 className="text-xl font-bold text-gray-900 mb-4">ВКонтакте</h2>
-            <VkKpiCards kpis={vkStats.data.kpis} />
-            {vkStats.data.insights && vkStats.data.insights.length > 0 && (
-              <div className="mt-4">
-                <InsightBanner insights={vkStats.data.insights} block="vk" />
+            <section>
+              <VkKpiCards kpis={vkStats.data.kpis} />
+              {vkStats.data.insights && vkStats.data.insights.length > 0 && (
+                <div className="mt-4">
+                  <InsightBanner insights={vkStats.data.insights} block="vk" />
+                </div>
+              )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <VkReachChart data={vkStats.data.reach_trend} />
+                <VkContentChart data={vkStats.data.content_trend} />
               </div>
-            )}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-              <VkReachChart data={vkStats.data.reach_trend} />
-              <VkContentChart data={vkStats.data.content_trend} />
-            </div>
-          </section>
+            </section>
+          </>
         )}
 
         {/* Block 5: Geo-service Reviews */}
-        <h2 className="text-xl font-bold text-gray-900">Отзывы с геосервисов</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Отзывы с геосервисов</h2>
 
         {/* Block 6: Reviews */}
         <section>
