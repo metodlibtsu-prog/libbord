@@ -83,7 +83,7 @@ export default function ChannelChart({ data, isLoading }: Props) {
             animationDuration={1000}
             animationEasing="ease-out"
           >
-            {chartData.map((entry, index) => (
+            {chartData.map((_entry, index) => (
               <Cell key={`cell-${index}`} fill={`url(#gradient-${index})`} />
             ))}
           </Bar>

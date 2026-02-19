@@ -68,7 +68,7 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
               <defs>
-                {counters.map((counter, idx) => (
+                {counters.map((_counter, idx) => (
                   <filter key={`glow-${idx}`} id={`glow-${idx}`} x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur stdDeviation="3" result="coloredBlur" />
                     <feMerge>
