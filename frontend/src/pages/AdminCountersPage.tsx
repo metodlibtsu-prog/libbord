@@ -14,6 +14,8 @@ export default function AdminCountersPage() {
   const [counterId, setCounterId] = useState('')
   const [syncResult, setSyncResult] = useState<{ message: string; rows: number; days: number } | null>(null)
   const [syncError, setSyncError] = useState<string | null>(null)
+  const [customSyncFrom, setCustomSyncFrom] = useState('')
+  const [customSyncTo, setCustomSyncTo] = useState('')
 
   const { data: libraries } = useQuery({ queryKey: ['libraries'], queryFn: fetchLibraries })
   const libraryId = libraries?.[0]?.id || ''
@@ -131,6 +133,45 @@ export default function AdminCountersPage() {
             )}
             Загрузить за последний год
           </button>
+        </div>
+
+        {/* Custom date range sync */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <p className="text-xs text-gray-500 mb-2">Синхронизировать за произвольный период:</p>
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs text-gray-500">с</label>
+              <input
+                type="date"
+                value={customSyncFrom}
+                onChange={(e) => setCustomSyncFrom(e.target.value)}
+                className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <label className="text-xs text-gray-500">по</label>
+              <input
+                type="date"
+                value={customSyncTo}
+                min={customSyncFrom || undefined}
+                onChange={(e) => setCustomSyncTo(e.target.value)}
+                className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <button
+              onClick={() => syncMutation.mutate({ date_from: customSyncFrom, date_to: customSyncTo })}
+              disabled={syncMutation.isPending || !libraryId || !customSyncFrom || !customSyncTo}
+              className="px-4 py-1.5 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 disabled:opacity-50 flex items-center gap-2"
+            >
+              {syncMutation.isPending ? (
+                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+              ) : null}
+              Синхронизировать период
+            </button>
+          </div>
         </div>
 
         {/* Sync result */}
