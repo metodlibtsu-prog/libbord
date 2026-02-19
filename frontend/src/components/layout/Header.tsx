@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import PeriodSelector from '@/components/common/PeriodSelector'
 import CounterSelector from '@/components/common/CounterSelector'
+import Logo from '@/components/common/Logo'
 import { useAuth } from '@/context/AuthContext'
 import type { MetricCounter } from '@/types'
 
@@ -24,9 +25,12 @@ export default function Header({ libraryName, counters, selectedCounter, onCount
     >
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold gradient-text">Libboard</h1>
-            <p className="text-sm text-dark-text-secondary">{libraryName}</p>
+          <div className="flex items-center gap-3">
+            <Logo className="w-10 h-10 flex-shrink-0" />
+            <div>
+              <h1 className="text-xl font-bold gradient-text">Libboard</h1>
+              <p className="text-sm text-dark-text-secondary">{libraryName}</p>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <PeriodSelector />
