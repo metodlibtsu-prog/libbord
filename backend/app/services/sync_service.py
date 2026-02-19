@@ -16,7 +16,12 @@ from app.services.yandex_metrika import YandexMetrikaService
 logger = logging.getLogger(__name__)
 
 
-async def sync_library_metrics(db: AsyncSession, library_id: uuid.UUID) -> None:
+async def sync_library_metrics(
+    db: AsyncSession,
+    library_id: uuid.UUID,
+    date_from: datetime.date | None = None,
+    date_to: datetime.date | None = None,
+) -> None:
     """
     Синхронизация метрик для библиотеки из Яндекс.Метрики
 
@@ -25,7 +30,7 @@ async def sync_library_metrics(db: AsyncSession, library_id: uuid.UUID) -> None:
     3. Получить все активные счётчики библиотеки
     4. Для каждого счётчика:
        a. Обновить sync_status на 'syncing'
-       b. Получить метрики за последние 7 дней
+       b. Получить метрики за указанный период (по умолчанию: последние 7 дней)
        c. Сохранить метрики в traffic_metrics (upsert)
        d. Обновить last_sync_at, sync_status='success'
     5. Обработать ошибки: sync_status='error', sync_error_message
@@ -102,12 +107,17 @@ async def sync_library_metrics(db: AsyncSession, library_id: uuid.UUID) -> None:
                 counter.sync_error_message = None
                 await db.commit()
 
-                # b. Fetch metrics for last 7 days
-                date_to = datetime.date.today()
-                date_from = date_to - datetime.timedelta(days=7)
+                # b. Fetch metrics for the requested period (default: last 7 days)
+                effective_date_to = date_to or datetime.date.today()
+                effective_date_from = date_from or (effective_date_to - datetime.timedelta(days=7))
+
+                logger.info(
+                    f"Fetching metrics from {effective_date_from} to {effective_date_to}"
+                    f" ({(effective_date_to - effective_date_from).days + 1} days)"
+                )
 
                 metrics_data = await ym_service.fetch_metrics(
-                    counter.yandex_counter_id, date_from, date_to
+                    counter.yandex_counter_id, effective_date_from, effective_date_to
                 )
 
                 # Match counter to its channel by name

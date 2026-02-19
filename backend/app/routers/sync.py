@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import datetime
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,15 +21,24 @@ router = APIRouter(prefix="/api/sync", tags=["sync"])
 @router.post("/trigger")
 async def trigger_sync(
     library_id: uuid.UUID,
+    date_from: Optional[datetime.date] = Query(
+        default=None,
+        description="Начало периода (YYYY-MM-DD). По умолчанию: 7 дней назад",
+    ),
+    date_to: Optional[datetime.date] = Query(
+        default=None,
+        description="Конец периода (YYYY-MM-DD). По умолчанию: сегодня",
+    ),
     db: AsyncSession = Depends(get_db),
     # NOTE: Temporarily public - JWT validation with ES256 needs to be fixed
     # _admin: dict = Depends(get_current_admin),
 ) -> dict:
     """
-    Ручной запуск синхронизации метрик с Яндекс.Метрики
+    Ручной запуск синхронизации метрик с Яндекс.Метрики.
+    Если date_from и date_to не указаны — синхронизируются последние 7 дней.
     """
     try:
-        await sync_library_metrics(db, library_id)
+        await sync_library_metrics(db, library_id, date_from=date_from, date_to=date_to)
 
         # Диагностика: сколько данных в базе
         token_result = await db.execute(
@@ -56,8 +67,16 @@ async def trigger_sync(
             )
         )).scalar() or 0
 
+        effective_date_to = date_to or datetime.date.today()
+        effective_date_from = date_from or (effective_date_to - datetime.timedelta(days=7))
+
         return {
             "message": "Синхронизация завершена",
+            "period": {
+                "date_from": str(effective_date_from),
+                "date_to": str(effective_date_to),
+                "days": (effective_date_to - effective_date_from).days + 1,
+            },
             "diagnostics": {
                 "has_token": token is not None,
                 "token_expired": str(token.expires_at) if token else None,
