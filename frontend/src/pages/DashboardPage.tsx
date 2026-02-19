@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchCounters, fetchLibraries } from '@/api/dashboard'
+import { fetchLibraries } from '@/api/dashboard'
 import Header from '@/components/layout/Header'
 import KpiCards from '@/components/dashboard/KpiCards'
 import ChannelChart from '@/components/dashboard/ChannelChart'
@@ -23,7 +22,6 @@ import {
 } from '@/hooks/useDashboardData'
 
 export default function DashboardPage() {
-  const [selectedCounter, setSelectedCounter] = useState<string | undefined>()
   const { isDark } = useTheme()
 
   const { data: libraries, isLoading: libLoading } = useQuery({
@@ -34,17 +32,11 @@ export default function DashboardPage() {
   const libraryId = libraries?.[0]?.id || ''
   const libraryName = libraries?.[0]?.name || 'Libboard'
 
-  const { data: counters } = useQuery({
-    queryKey: ['counters', libraryId],
-    queryFn: () => fetchCounters(libraryId),
-    enabled: !!libraryId,
-  })
-
-  const overview  = useOverview(libraryId, selectedCounter)
+  const overview  = useOverview(libraryId)
   const channels  = useChannels(libraryId)
-  const behavior  = useBehavior(libraryId, selectedCounter)
+  const behavior  = useBehavior(libraryId)
   const reviews   = useReviews(libraryId)
-  const insights  = useInsights(libraryId, selectedCounter)
+  const insights  = useInsights(libraryId)
   const vkStats   = useVkStats(libraryId)
 
   if (libLoading) return <LoadingSpinner />
@@ -58,12 +50,7 @@ export default function DashboardPage() {
 
       {/* Content */}
       <div className="relative z-10">
-        <Header
-          libraryName={libraryName}
-          counters={counters || []}
-          selectedCounter={selectedCounter}
-          onCounterChange={setSelectedCounter}
-        />
+        <Header libraryName={libraryName} />
         <main className="max-w-7xl mx-auto px-4 py-8 space-y-10">
 
           <h2 className="text-2xl font-semibold text-dark-text tracking-tight">Цифровые сервисы библиотеки</h2>

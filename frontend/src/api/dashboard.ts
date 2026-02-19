@@ -23,13 +23,18 @@ export async function fetchCounters(libraryId: string): Promise<MetricCounter[]>
   return data
 }
 
+function dateParams(dateFrom?: string, dateTo?: string): Record<string, string> {
+  if (dateFrom && dateTo) return { date_from: dateFrom, date_to: dateTo }
+  return {}
+}
+
 export async function fetchOverview(
   libraryId: string,
   period: Period,
-  counterId?: string,
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<KpiOverview> {
-  const params: Record<string, string> = { library_id: libraryId, period }
-  if (counterId) params.counter_id = counterId
+  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
   const { data } = await apiClient.get('/dashboard/overview', { params })
   return data
 }
@@ -37,10 +42,11 @@ export async function fetchOverview(
 export async function fetchChannels(
   libraryId: string,
   period: Period,
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<ChannelMetric[]> {
-  const { data } = await apiClient.get('/dashboard/channels', {
-    params: { library_id: libraryId, period },
-  })
+  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
+  const { data } = await apiClient.get('/dashboard/channels', { params })
   return data
 }
 
@@ -48,20 +54,21 @@ export async function fetchChannelTrend(
   libraryId: string,
   channelId: string,
   period: Period,
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<ChannelTrendPoint[]> {
-  const { data } = await apiClient.get('/dashboard/channels/trend', {
-    params: { library_id: libraryId, channel_id: channelId, period },
-  })
+  const params = { library_id: libraryId, channel_id: channelId, period, ...dateParams(dateFrom, dateTo) }
+  const { data } = await apiClient.get('/dashboard/channels/trend', { params })
   return data
 }
 
 export async function fetchBehavior(
   libraryId: string,
   period: Period,
-  counterId?: string,
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<BehaviorData> {
-  const params: Record<string, string> = { library_id: libraryId, period }
-  if (counterId) params.counter_id = counterId
+  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
   const { data } = await apiClient.get('/dashboard/behavior', { params })
   return data
 }
@@ -69,10 +76,11 @@ export async function fetchBehavior(
 export async function fetchEngagement(
   libraryId: string,
   period: Period,
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<EngagementData> {
-  const { data } = await apiClient.get('/dashboard/engagement', {
-    params: { library_id: libraryId, period },
-  })
+  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
+  const { data } = await apiClient.get('/dashboard/engagement', { params })
   return data
 }
 
@@ -90,10 +98,10 @@ export async function fetchReviews(
 export async function fetchInsights(
   libraryId: string,
   period: Period,
-  counterId?: string,
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<Insight[]> {
-  const params: Record<string, string> = { library_id: libraryId, period }
-  if (counterId) params.counter_id = counterId
+  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
   const { data } = await apiClient.get('/dashboard/insights', { params })
   return data
 }
@@ -101,9 +109,10 @@ export async function fetchInsights(
 export async function fetchVkDashboard(
   libraryId: string,
   period: Period,
+  dateFrom?: string,
+  dateTo?: string,
 ): Promise<VkStatsResponse> {
-  const { data } = await apiClient.get('/dashboard/vk', {
-    params: { library_id: libraryId, period },
-  })
+  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
+  const { data } = await apiClient.get('/dashboard/vk', { params })
   return data
 }

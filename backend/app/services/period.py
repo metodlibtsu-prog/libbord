@@ -36,6 +36,20 @@ def resolve_period(period: Period) -> tuple[date, date, date, date]:
     return date_from, date_to, prev_from, prev_to
 
 
+def resolve_period_or_custom(
+    period: Period,
+    date_from: date | None = None,
+    date_to: date | None = None,
+) -> tuple[date, date, date, date]:
+    """If both custom dates are provided, use them; otherwise fall back to preset period."""
+    if date_from and date_to:
+        duration = (date_to - date_from).days + 1
+        prev_to = date_from - timedelta(days=1)
+        prev_from = prev_to - timedelta(days=duration - 1)
+        return date_from, date_to, prev_from, prev_to
+    return resolve_period(period)
+
+
 def calc_delta_pct(current: float, previous: float) -> float | None:
     """Calculate percentage change. Returns None if previous is 0."""
     if previous == 0:

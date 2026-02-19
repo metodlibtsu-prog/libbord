@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, timedelta
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -30,6 +31,7 @@ from app.schemas.vk import (
 )
 from app.services import dashboard_service
 from app.services.insights_engine import generate_insights, generate_vk_insights
+from app.services.period import resolve_period_or_custom
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -39,18 +41,22 @@ async def overview(
     library_id: uuid.UUID,
     period: Period = Period.month,
     counter_id: uuid.UUID | None = None,
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_overview(db, library_id, period, counter_id)
+    return await dashboard_service.get_overview(db, library_id, period, counter_id, date_from, date_to)
 
 
 @router.get("/channels", response_model=list[ChannelMetric])
 async def channels(
     library_id: uuid.UUID,
     period: Period = Period.month,
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_channels(db, library_id, period)
+    return await dashboard_service.get_channels(db, library_id, period, date_from, date_to)
 
 
 @router.get("/channels/trend", response_model=list[ChannelTrendPoint])
@@ -58,9 +64,11 @@ async def channel_trend(
     library_id: uuid.UUID,
     channel_id: uuid.UUID,
     period: Period = Period.month,
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_channel_trend(db, library_id, channel_id, period)
+    return await dashboard_service.get_channel_trend(db, library_id, channel_id, period, date_from, date_to)
 
 
 @router.get("/behavior", response_model=BehaviorData)
@@ -68,18 +76,22 @@ async def behavior(
     library_id: uuid.UUID,
     period: Period = Period.month,
     counter_id: uuid.UUID | None = None,
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_behavior(db, library_id, period, counter_id)
+    return await dashboard_service.get_behavior(db, library_id, period, counter_id, date_from, date_to)
 
 
 @router.get("/engagement", response_model=EngagementData)
 async def engagement(
     library_id: uuid.UUID,
     period: Period = Period.month,
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_engagement(db, library_id, period)
+    return await dashboard_service.get_engagement(db, library_id, period, date_from, date_to)
 
 
 @router.get("/reviews", response_model=ReviewsResponse)
@@ -97,11 +109,13 @@ async def insights(
     library_id: uuid.UUID,
     period: Period = Period.month,
     counter_id: uuid.UUID | None = None,
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    overview_data = await dashboard_service.get_overview(db, library_id, period, counter_id)
-    behavior_data = await dashboard_service.get_behavior(db, library_id, period, counter_id)
-    engagement_data = await dashboard_service.get_engagement(db, library_id, period)
+    overview_data = await dashboard_service.get_overview(db, library_id, period, counter_id, date_from, date_to)
+    behavior_data = await dashboard_service.get_behavior(db, library_id, period, counter_id, date_from, date_to)
+    engagement_data = await dashboard_service.get_engagement(db, library_id, period, date_from, date_to)
     return generate_insights(overview_data, behavior_data, engagement_data)
 
 
@@ -109,29 +123,14 @@ async def insights(
 async def vk_stats(
     library_id: uuid.UUID,
     period: Period = Period.month,
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get VK statistics for public dashboard"""
-    # Determine date range based on period
+    # Determine date range
     today = date.today()
-    if period == Period.today:
-        date_from = today
-        date_to = today
-    elif period == Period.yesterday:
-        date_from = today - timedelta(days=1)
-        date_to = today - timedelta(days=1)
-    elif period == Period.week:
-        date_from = today - timedelta(days=7)
-        date_to = today
-    elif period == Period.month:
-        date_from = today - timedelta(days=30)
-        date_to = today
-    elif period == Period.quarter:
-        date_from = today - timedelta(days=90)
-        date_to = today
-    else:  # year
-        date_from = today - timedelta(days=365)
-        date_to = today
+    resolved_from, resolved_to, _, _ = resolve_period_or_custom(period, date_from, date_to)
 
     # Get latest upload info
     upload_query = select(VkUpload).where(
@@ -144,8 +143,8 @@ async def vk_stats(
     # Fetch VK metrics
     vk_query = select(VkMetric).where(
         VkMetric.library_id == library_id,
-        VkMetric.date >= date_from,
-        VkMetric.date <= date_to,
+        VkMetric.date >= resolved_from,
+        VkMetric.date <= resolved_to,
     ).order_by(VkMetric.date.asc())
     vk_result = await db.execute(vk_query)
     vk_metrics = vk_result.scalars().all()
@@ -153,8 +152,8 @@ async def vk_stats(
     # Fetch engagement metrics
     eng_query = select(EngagementMetric).where(
         EngagementMetric.library_id == library_id,
-        EngagementMetric.date >= date_from,
-        EngagementMetric.date <= date_to,
+        EngagementMetric.date >= resolved_from,
+        EngagementMetric.date <= resolved_to,
     ).order_by(EngagementMetric.date.asc())
     eng_result = await db.execute(eng_query)
     eng_metrics = eng_result.scalars().all()
@@ -173,8 +172,8 @@ async def vk_stats(
     er_pct = (total_engagement / total_reach * 100) if total_reach > 0 else 0
 
     # Calculate previous period for comparison
-    period_days = (date_to - date_from).days + 1
-    prev_date_to = date_from - timedelta(days=1)
+    period_days = (resolved_to - resolved_from).days + 1
+    prev_date_to = resolved_from - timedelta(days=1)
     prev_date_from = prev_date_to - timedelta(days=period_days - 1)
 
     # Fetch previous period metrics
@@ -280,8 +279,8 @@ async def vk_stats(
 
     # Period info
     period_info = VkPeriodInfo(
-        start=str(date_from),
-        end=str(date_to),
+        start=str(resolved_from),
+        end=str(resolved_to),
         upload_date=str(latest_upload.uploaded_at.date()) if latest_upload else None,
     )
 

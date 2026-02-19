@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +22,7 @@ from app.schemas.dashboard import (
     ReviewItem,
     ReviewsResponse,
 )
-from app.services.period import calc_delta_pct, resolve_period
+from app.services.period import calc_delta_pct, resolve_period, resolve_period_or_custom
 
 
 async def get_overview(
@@ -29,8 +30,10 @@ async def get_overview(
     library_id: uuid.UUID,
     period: Period,
     counter_id: uuid.UUID | None = None,
+    date_from_custom: date | None = None,
+    date_to_custom: date | None = None,
 ) -> KpiOverview:
-    date_from, date_to, prev_from, prev_to = resolve_period(period)
+    date_from, date_to, prev_from, prev_to = resolve_period_or_custom(period, date_from_custom, date_to_custom)
 
     async def _sum_traffic(d_from, d_to):
         q = select(
@@ -66,8 +69,10 @@ async def get_channels(
     db: AsyncSession,
     library_id: uuid.UUID,
     period: Period,
+    date_from_custom: date | None = None,
+    date_to_custom: date | None = None,
 ) -> list[ChannelMetric]:
-    date_from, date_to, _, _ = resolve_period(period)
+    date_from, date_to, _, _ = resolve_period_or_custom(period, date_from_custom, date_to_custom)
 
     q = (
         select(
@@ -102,8 +107,10 @@ async def get_channel_trend(
     library_id: uuid.UUID,
     channel_id: uuid.UUID,
     period: Period,
+    date_from_custom: date | None = None,
+    date_to_custom: date | None = None,
 ) -> list[ChannelTrendPoint]:
-    date_from, date_to, _, _ = resolve_period(period)
+    date_from, date_to, _, _ = resolve_period_or_custom(period, date_from_custom, date_to_custom)
 
     q = (
         select(
@@ -134,8 +141,10 @@ async def get_behavior(
     library_id: uuid.UUID,
     period: Period,
     counter_id: uuid.UUID | None = None,
+    date_from_custom: date | None = None,
+    date_to_custom: date | None = None,
 ) -> BehaviorData:
-    date_from, date_to, prev_from, prev_to = resolve_period(period)
+    date_from, date_to, prev_from, prev_to = resolve_period_or_custom(period, date_from_custom, date_to_custom)
 
     # Get all active counters for this library
     counters_q = select(MetricCounter).where(
@@ -240,8 +249,10 @@ async def get_engagement(
     db: AsyncSession,
     library_id: uuid.UUID,
     period: Period,
+    date_from_custom: date | None = None,
+    date_to_custom: date | None = None,
 ) -> EngagementData:
-    date_from, date_to, prev_from, prev_to = resolve_period(period)
+    date_from, date_to, prev_from, prev_to = resolve_period_or_custom(period, date_from_custom, date_to_custom)
 
     async def _sum_engagement(d_from, d_to):
         q = select(
