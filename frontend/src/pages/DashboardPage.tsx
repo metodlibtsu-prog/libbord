@@ -61,6 +61,8 @@ export default function DashboardPage() {
           onCounterChange={setSelectedCounter}
         />
         <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <h2 className="text-xl font-bold text-dark-text">Цифровые сервисы библиотеки</h2>
+
         {/* Block 1: KPI Overview */}
         <section>
           <KpiCards data={overview.data} isLoading={overview.isLoading} />
@@ -68,7 +70,6 @@ export default function DashboardPage() {
         </section>
 
         {/* Block 2: Channels */}
-        <h2 className="text-xl font-bold text-dark-text mb-4">Цифровые сервисы библиотеки</h2>
         <section>
           <ChannelChart data={channels.data} isLoading={channels.isLoading} />
           {insights.data && <InsightBanner insights={insights.data} block="channels" />}
