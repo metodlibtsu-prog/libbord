@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   CartesianGrid,
   Legend,
@@ -27,6 +28,7 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
   const chartTheme = useChartTheme()
   const { isDark } = useTheme()
+  const [activeLine, setActiveLine] = useState<number | null>(null)
 
   // Prepare chart data: merge all counter timelines by date
   const dateMap = new Map<string, any>()
@@ -87,23 +89,35 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
                 </defs>
               )}
 
-              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={chartTheme.gridColor}
+                strokeOpacity={isDark ? 1 : 0.6}
+                horizontal={false}
+              />
               <XAxis
                 dataKey="date"
                 tick={{ fontSize: 11, fill: chartTheme.textColor }}
                 stroke={chartTheme.textColor}
                 tickLine={false}
+                axisLine={false}
               />
-              <YAxis tick={{ fontSize: 11, fill: chartTheme.textColor }} stroke={chartTheme.textColor} tickLine={false} />
+              <YAxis
+                tick={{ fontSize: 11, fill: chartTheme.textColor }}
+                stroke={chartTheme.textColor}
+                tickLine={false}
+                axisLine={false}
+              />
               <Tooltip
                 contentStyle={{
                   backgroundColor: chartTheme.tooltipBg,
                   border: `1px solid ${chartTheme.tooltipBorder}`,
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   fontSize: 12,
                   color: chartTheme.tooltipText,
                   backdropFilter: isDark ? 'blur(12px)' : 'none',
-                  boxShadow: isDark ? 'none' : '0 6px 20px rgba(0,0,0,0.08)',
+                  boxShadow: isDark ? 'none' : '0 8px 24px rgba(0,0,0,0.08)',
+                  padding: '8px 12px',
                 }}
                 formatter={(value: any, name: string) => {
                   const idx = parseInt(name.replace('counter_', ''))
@@ -128,21 +142,28 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
                   )}${unit}`
                 }}
               />
-              {counters.map((_counter, idx) => (
-                <Line
-                  key={_counter.counter_id}
-                  type="monotone"
-                  dataKey={`counter_${idx}`}
-                  name={`counter_${idx}`}
-                  stroke={chartTheme.lineColors[idx % chartTheme.lineColors.length]}
-                  strokeWidth={isDark ? 3 : 2}
-                  dot={false}
-                  filter={isDark ? `url(#glow-${idx})` : undefined}
-                  isAnimationActive={inView}
-                  animationDuration={1500}
-                  animationEasing="ease-out"
-                />
-              ))}
+              {counters.map((_counter, idx) => {
+                const isActive = activeLine === null || activeLine === idx
+                return (
+                  <Line
+                    key={_counter.counter_id}
+                    type="monotone"
+                    dataKey={`counter_${idx}`}
+                    name={`counter_${idx}`}
+                    stroke={chartTheme.lineColors[idx % chartTheme.lineColors.length]}
+                    strokeWidth={isDark ? 3 : isActive ? 2.5 : 1.5}
+                    strokeOpacity={isDark ? 1 : isActive ? 1 : 0.3}
+                    dot={false}
+                    filter={isDark ? `url(#glow-${idx})` : undefined}
+                    isAnimationActive={inView}
+                    animationDuration={1500}
+                    animationEasing="ease-out"
+                    onMouseEnter={() => !isDark && setActiveLine(idx)}
+                    onMouseLeave={() => !isDark && setActiveLine(null)}
+                    style={{ cursor: isDark ? 'default' : 'pointer', transition: 'stroke-opacity 0.2s' }}
+                  />
+                )
+              })}
             </LineChart>
           </ResponsiveContainer>
 
