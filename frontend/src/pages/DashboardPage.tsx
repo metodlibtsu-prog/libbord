@@ -8,6 +8,7 @@ import BehaviorCharts from '@/components/dashboard/BehaviorCharts'
 import ReviewsList from '@/components/dashboard/ReviewsList'
 import InsightBanner from '@/components/dashboard/InsightBanner'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
+import ScrollToTop from '@/components/common/ScrollToTop'
 import VkKpiCards from '@/components/vk/VkKpiCards'
 import VkReachChart from '@/components/vk/VkReachChart'
 import VkContentChart from '@/components/vk/VkContentChart'
@@ -29,7 +30,7 @@ export default function DashboardPage() {
   })
 
   const libraryId = libraries?.[0]?.id || ''
-  const libraryName = libraries?.[0]?.name || 'Libbord'
+  const libraryName = libraries?.[0]?.name || 'Libboard'
 
   const { data: counters } = useQuery({
     queryKey: ['counters', libraryId],
@@ -107,6 +108,9 @@ export default function DashboardPage() {
         </section>
         </main>
       </div>
+
+      {/* Scroll to Top Button */}
+      <ScrollToTop />
     </div>
   )
 }

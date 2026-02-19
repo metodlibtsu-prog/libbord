@@ -1,5 +1,5 @@
 /**
- * Русские переводы для Libbord
+ * Русские переводы для Libboard
  */
 
 import { ChannelType } from '../types';

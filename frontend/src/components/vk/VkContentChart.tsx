@@ -1,5 +1,7 @@
 import { VkContentPoint } from '@/types'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { motion } from 'framer-motion'
+import { useInView } from 'react-intersection-observer'
 import { formatNumber } from '@/utils/formatters'
 
 interface VkContentChartProps {
@@ -7,11 +9,13 @@ interface VkContentChartProps {
 }
 
 export default function VkContentChart({ data }: VkContentChartProps) {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
+
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Активность контента</h2>
-        <p className="text-sm text-gray-400 text-center py-8">Нет данных</p>
+      <div className="glass-card rounded-xl p-5">
+        <h2 className="text-lg font-semibold text-dark-text mb-4">Активность контента</h2>
+        <p className="text-sm text-dark-text-secondary text-center py-8">Нет данных</p>
       </div>
     )
   }
@@ -23,56 +27,134 @@ export default function VkContentChart({ data }: VkContentChartProps) {
   const avgVideos = Math.round(data.reduce((sum, d) => sum + d.videos, 0) / data.length)
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5">
-      <h2 className="text-lg font-semibold text-gray-900 mb-2">Просмотры контента</h2>
-      <p className="text-sm text-gray-500 mb-4">Сколько раз пользователи просмотрели контент</p>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={inView ? { opacity: 1 } : {}}
+      className="glass-card rounded-xl p-5 relative overflow-hidden"
+    >
+      {/* Gradient accent line at bottom */}
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-premium" />
+
+      <h2 className="text-lg font-semibold text-dark-text mb-2 relative z-10">Просмотры контента</h2>
+      <p className="text-sm text-dark-text-secondary mb-4 relative z-10">
+        Сколько раз пользователи просмотрели контент
+      </p>
 
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }} barCategoryGap="10%">
-          <CartesianGrid strokeDasharray="3 3" />
+          <defs>
+            <linearGradient id="gradient-posts" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#00D4FF" stopOpacity={0.8} />
+              <stop offset="100%" stopColor="#00D4FF" stopOpacity={1} />
+            </linearGradient>
+            <linearGradient id="gradient-stories" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7B2FBE" stopOpacity={0.8} />
+              <stop offset="100%" stopColor="#7B2FBE" stopOpacity={1} />
+            </linearGradient>
+            <linearGradient id="gradient-clips" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FF006E" stopOpacity={0.8} />
+              <stop offset="100%" stopColor="#FF006E" stopOpacity={1} />
+            </linearGradient>
+            <linearGradient id="gradient-videos" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.8} />
+              <stop offset="100%" stopColor="#F59E0B" stopOpacity={1} />
+            </linearGradient>
+          </defs>
+
+          <CartesianGrid strokeDasharray="3 3" stroke="#30363D" horizontal={false} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 12, fill: '#8B949E' }}
+            stroke="#8B949E"
+            tickLine={false}
             tickFormatter={(value) => {
               const date = new Date(value)
               return `${date.getDate()}.${date.getMonth() + 1}`
             }}
           />
-          <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatNumber(v)} />
+          <YAxis
+            tick={{ fontSize: 12, fill: '#8B949E' }}
+            stroke="#8B949E"
+            tickLine={false}
+            tickFormatter={(v) => formatNumber(v)}
+          />
           <Tooltip
             formatter={(value: number) => formatNumber(value)}
-            contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+            contentStyle={{
+              backgroundColor: '#161B22',
+              border: '1px solid #30363D',
+              borderRadius: '8px',
+              color: '#E6EDF3',
+              backdropFilter: 'blur(12px)',
+            }}
             labelFormatter={(value) => {
               const date = new Date(value as string)
               return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`
             }}
           />
-          <Legend />
-          <Bar dataKey="posts" stackId="content" fill="#3b82f6" name="Посты" />
-          <Bar dataKey="stories" stackId="content" fill="#8b5cf6" name="Истории" />
-          <Bar dataKey="clips" stackId="content" fill="#ec4899" name="Клипы" />
-          <Bar dataKey="videos" stackId="content" fill="#f59e0b" name="Видео" />
+          <Legend wrapperStyle={{ color: '#8B949E' }} />
+          <Bar
+            dataKey="posts"
+            stackId="content"
+            fill="url(#gradient-posts)"
+            name="Посты"
+            radius={[0, 0, 0, 0]}
+            isAnimationActive={inView}
+            animationDuration={1000}
+            animationEasing="ease-out"
+          />
+          <Bar
+            dataKey="stories"
+            stackId="content"
+            fill="url(#gradient-stories)"
+            name="Истории"
+            radius={[0, 0, 0, 0]}
+            isAnimationActive={inView}
+            animationDuration={1000}
+            animationEasing="ease-out"
+          />
+          <Bar
+            dataKey="clips"
+            stackId="content"
+            fill="url(#gradient-clips)"
+            name="Клипы"
+            radius={[0, 0, 0, 0]}
+            isAnimationActive={inView}
+            animationDuration={1000}
+            animationEasing="ease-out"
+          />
+          <Bar
+            dataKey="videos"
+            stackId="content"
+            fill="url(#gradient-videos)"
+            name="Видео"
+            radius={[8, 8, 0, 0]}
+            isAnimationActive={inView}
+            animationDuration={1000}
+            animationEasing="ease-out"
+          />
         </BarChart>
       </ResponsiveContainer>
 
-      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm relative z-10">
         <div>
-          <p className="text-gray-500">Просмотры постов/день</p>
-          <p className="font-semibold text-gray-900">{formatNumber(avgPosts)}</p>
+          <p className="text-dark-text-secondary">Просмотры постов/день</p>
+          <p className="font-semibold text-dark-text">{formatNumber(avgPosts)}</p>
         </div>
         <div>
-          <p className="text-gray-500">Просмотры историй/день</p>
-          <p className="font-semibold text-gray-900">{formatNumber(avgStories)}</p>
+          <p className="text-dark-text-secondary">Просмотры историй/день</p>
+          <p className="font-semibold text-dark-text">{formatNumber(avgStories)}</p>
         </div>
         <div>
-          <p className="text-gray-500">Просмотры клипов/день</p>
-          <p className="font-semibold text-gray-900">{formatNumber(avgClips)}</p>
+          <p className="text-dark-text-secondary">Просмотры клипов/день</p>
+          <p className="font-semibold text-dark-text">{formatNumber(avgClips)}</p>
         </div>
         <div>
-          <p className="text-gray-500">Просмотры видео/день</p>
-          <p className="font-semibold text-gray-900">{formatNumber(avgVideos)}</p>
+          <p className="text-dark-text-secondary">Просмотры видео/день</p>
+          <p className="font-semibold text-dark-text">{formatNumber(avgVideos)}</p>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

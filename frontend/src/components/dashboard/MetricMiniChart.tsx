@@ -8,8 +8,11 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { motion } from 'framer-motion'
+import { useInView } from 'react-intersection-observer'
 import type { CounterBehaviorTimeline } from '@/types'
 import { formatDate } from '@/utils/formatters'
+import { NEON_COLORS } from '@/utils/colors'
 import MetricInsightHint from './MetricInsightHint'
 
 interface Props {
@@ -19,9 +22,8 @@ interface Props {
   unit?: string
 }
 
-const COLORS = ['#EF4444', '#10B981', '#6366F1', '#F59E0B', '#0EA5E9', '#8B5CF6']
-
 export default function MetricMiniChart({ title, metricKey, counters, unit = '%' }: Props) {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
   // Prepare chart data: merge all counter timelines by date
   const dateMap = new Map<string, any>()
 
@@ -48,20 +50,52 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
     }, 0) / (counters.length || 1)
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
-      <h3 className="text-md font-semibold text-gray-900 mb-3">{title}</h3>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={inView ? { opacity: 1 } : {}}
+      className="glass-card rounded-xl p-4 relative overflow-hidden"
+    >
+      {/* Corner gradient accent */}
+      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-premium opacity-10 blur-2xl" />
+
+      <h3 className="text-md font-semibold text-dark-text mb-3 relative z-10">{title}</h3>
 
       {counters.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">Нет данных</p>
+        <p className="text-sm text-dark-text-secondary text-center py-8">Нет данных</p>
       ) : (
         <>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#999" />
-              <YAxis tick={{ fontSize: 11 }} stroke="#999" />
+              <defs>
+                {counters.map((counter, idx) => (
+                  <filter key={`glow-${idx}`} id={`glow-${idx}`} x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                ))}
+              </defs>
+
+              <CartesianGrid strokeDasharray="3 3" stroke="#30363D" horizontal={false} />
+              <XAxis
+                dataKey="date"
+                tick={{ fontSize: 11, fill: '#8B949E' }}
+                stroke="#8B949E"
+                tickLine={false}
+              />
+              <YAxis tick={{ fontSize: 11, fill: '#8B949E' }} stroke="#8B949E" tickLine={false} />
               <Tooltip
-                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: 12 }}
+                contentStyle={{
+                  backgroundColor: '#161B22',
+                  border: '1px solid #30363D',
+                  borderRadius: '8px',
+                  fontSize: 12,
+                  color: '#E6EDF3',
+                  backdropFilter: 'blur(12px)',
+                }}
                 formatter={(value: any, name: string) => {
                   const idx = parseInt(name.replace('counter_', ''))
                   const counter = counters[idx]
@@ -73,7 +107,7 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
                 }}
               />
               <Legend
-                wrapperStyle={{ fontSize: 11 }}
+                wrapperStyle={{ fontSize: 11, color: '#8B949E' }}
                 formatter={(value) => {
                   const idx = parseInt(value.replace('counter_', ''))
                   const counter = counters[idx]
@@ -91,17 +125,23 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
                   type="monotone"
                   dataKey={`counter_${idx}`}
                   name={`counter_${idx}`}
-                  stroke={COLORS[idx % COLORS.length]}
-                  strokeWidth={2}
+                  stroke={NEON_COLORS[idx % NEON_COLORS.length]}
+                  strokeWidth={3}
                   dot={false}
+                  filter={`url(#glow-${idx})`}
+                  isAnimationActive={inView}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
                 />
               ))}
             </LineChart>
           </ResponsiveContainer>
 
-          <MetricInsightHint metricType={metricKey} avgValue={avgValue} />
+          <div className="relative z-10">
+            <MetricInsightHint metricType={metricKey} avgValue={avgValue} />
+          </div>
         </>
       )}
-    </div>
+    </motion.div>
   )
 }

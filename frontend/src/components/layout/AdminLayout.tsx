@@ -40,7 +40,7 @@ export default function AdminLayout() {
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to="/" className="text-lg font-bold text-gray-900">
-              Libbord
+              Libboard
             </Link>
             <span className="text-sm text-gray-400">|</span>
             <span className="text-sm font-medium text-gray-600">Админ-панель</span>

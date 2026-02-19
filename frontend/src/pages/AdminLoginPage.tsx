@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-sm bg-white rounded-xl border border-gray-200 p-8">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">Libbord Admin</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-1">Libboard Admin</h1>
         <p className="text-sm text-gray-500 mb-6">Войдите для управления данными</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
