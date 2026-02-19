@@ -7,12 +7,12 @@ interface PeriodContextValue {
 }
 
 const PeriodContext = createContext<PeriodContextValue>({
-  period: 'month',
+  period: 'week',
   setPeriod: () => {},
 })
 
 export function PeriodProvider({ children }: { children: ReactNode }) {
-  const [period, setPeriod] = useState<Period>('month')
+  const [period, setPeriod] = useState<Period>('week')
   return (
     <PeriodContext.Provider value={{ period, setPeriod }}>
       {children}
