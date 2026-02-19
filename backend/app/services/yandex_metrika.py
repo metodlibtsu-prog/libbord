@@ -136,6 +136,13 @@ class YandexMetrikaService:
             "ym:s:newUsers",  # новые пользователи (для расчета return_rate)
         ]
 
+        # Calculate the number of days in the requested period to set the API limit.
+        # Yandex Metrika API defaults to limit=100 rows — without an explicit limit,
+        # requests for quarter/year periods silently return only the first 100 days.
+        days_in_period = (date_to - date_from).days + 1
+        # Add a buffer so the limit is never too tight, and cap at the API maximum.
+        api_limit = min(max(days_in_period + 10, 100), 100_000)
+
         params = {
             "ids": counter_id,
             "date1": date_from.strftime("%Y-%m-%d"),
@@ -144,6 +151,7 @@ class YandexMetrikaService:
             "dimensions": "ym:s:date",
             "group": "day",
             "accuracy": "high",
+            "limit": api_limit,
         }
 
         response = await self.client.get(
