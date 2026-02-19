@@ -5,6 +5,7 @@ import type { ChannelMetric, ChannelType } from '@/types'
 import { CHANNEL_COLORS, CHANNEL_LABELS } from '@/utils/colors'
 import { formatNumber } from '@/utils/formatters'
 import { useChartTheme } from '@/hooks/useChartTheme'
+import { useTheme } from '@/context/ThemeContext'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 interface Props {
@@ -15,6 +16,7 @@ interface Props {
 export default function ChannelChart({ data, isLoading }: Props) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
   const chartTheme = useChartTheme()
+  const { isDark } = useTheme()
 
   if (isLoading) return <LoadingSpinner />
   if (!data || data.length === 0) {
@@ -39,15 +41,18 @@ export default function ChannelChart({ data, isLoading }: Props) {
       animate={inView ? { opacity: 1 } : {}}
       className="glass-card rounded-xl p-5 relative overflow-hidden"
     >
-      {/* Gradient accent line at top */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-premium" />
+      {/* Gradient accent line at top — dark only */}
+      {isDark && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-premium" />}
+
+      <h2 className="text-lg font-semibold text-dark-text mb-2">Каналы привлечения</h2>
+      <p className="text-sm text-dark-text-secondary mb-4">Просмотры по источникам трафика</p>
 
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} layout="vertical" margin={{ left: 120 }}>
           <defs>
             {chartData.map((item, idx) => (
               <linearGradient key={idx} id={`gradient-${idx}`} x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stopColor={item.fill} stopOpacity={0.8} />
+                <stop offset="0%" stopColor={item.fill} stopOpacity={isDark ? 0.8 : 0.7} />
                 <stop offset="100%" stopColor={item.fill} stopOpacity={1} />
               </linearGradient>
             ))}
@@ -74,6 +79,7 @@ export default function ChannelChart({ data, isLoading }: Props) {
               border: `1px solid ${chartTheme.tooltipBorder}`,
               borderRadius: '8px',
               color: chartTheme.tooltipText,
+              boxShadow: isDark ? 'none' : '0 6px 20px rgba(0,0,0,0.08)',
             }}
             cursor={{ fill: chartTheme.cursorFill }}
           />
@@ -92,8 +98,10 @@ export default function ChannelChart({ data, isLoading }: Props) {
         </BarChart>
       </ResponsiveContainer>
 
-      {/* Glow effect overlay at bottom */}
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-gradient-cyan/5 to-transparent pointer-events-none" />
+      {/* Bottom glow overlay — dark only */}
+      {isDark && (
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-gradient-cyan/5 to-transparent pointer-events-none" />
+      )}
     </motion.div>
   )
 }

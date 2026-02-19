@@ -55,13 +55,18 @@
 [data-theme="light"] .bg-dark-bg    { background-color: #F8FAFC; }
 [data-theme="light"] .bg-dark-card  { background-color: #FFFFFF; }
 [data-theme="light"] .text-dark-text           { color: #0F172A; }
-[data-theme="light"] .text-dark-text-secondary { color: #64748B; }
+[data-theme="light"] .text-dark-text-secondary { color: #475569; }
 [data-theme="light"] .border-dark-border       { border-color: #E2E8F0; }
 [data-theme="light"] .divide-dark-border > * + * { border-color: #E2E8F0; }
 
 /* DashboardPage background */
 [data-theme="light"] .min-h-screen.bg-dark-bg {
   background-color: #F8FAFC;
+}
+
+/* Remove the dark animated gradient overlay in light mode */
+[data-theme="light"] .fixed.inset-0.bg-gradient-to-br {
+  display: none;
 }
 
 /* ============================================

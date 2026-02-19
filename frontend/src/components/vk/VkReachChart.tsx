@@ -13,6 +13,7 @@ import { useInView } from 'react-intersection-observer'
 import type { VkReachPoint } from '@/types'
 import { formatNumber } from '@/utils/formatters'
 import { useChartTheme } from '@/hooks/useChartTheme'
+import { useTheme } from '@/context/ThemeContext'
 
 interface Props {
   data: VkReachPoint[]
@@ -21,6 +22,7 @@ interface Props {
 export default function VkReachChart({ data }: Props) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
   const chartTheme = useChartTheme()
+  const { isDark } = useTheme()
 
   if (!data || data.length === 0) {
     return (
@@ -31,6 +33,9 @@ export default function VkReachChart({ data }: Props) {
     )
   }
 
+  const reachColor = isDark ? '#00D4FF' : '#2563EB'
+  const viewsColor = isDark ? '#10B981' : '#16A34A'
+
   return (
     <motion.div
       ref={ref}
@@ -38,30 +43,34 @@ export default function VkReachChart({ data }: Props) {
       animate={inView ? { opacity: 1 } : {}}
       className="glass-card rounded-xl p-5 relative overflow-hidden"
     >
-      {/* Corner gradient accent */}
-      <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-premium opacity-10 blur-2xl" />
+      {/* Corner gradient accent — dark only */}
+      {isDark && (
+        <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-premium opacity-10 blur-2xl" />
+      )}
 
       <h2 className="text-lg font-semibold text-dark-text mb-2 relative z-10">Охват и показы</h2>
       <p className="text-sm text-dark-text-secondary mb-4 relative z-10">Сколько людей увидели контент</p>
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-          <defs>
-            <filter id="glow-reach" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-            <filter id="glow-views" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
+          {isDark && (
+            <defs>
+              <filter id="glow-reach" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="glow-views" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+          )}
 
           <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
           <XAxis
@@ -87,7 +96,8 @@ export default function VkReachChart({ data }: Props) {
               border: `1px solid ${chartTheme.tooltipBorder}`,
               borderRadius: '8px',
               color: chartTheme.tooltipText,
-              backdropFilter: 'blur(12px)',
+              backdropFilter: isDark ? 'blur(12px)' : 'none',
+              boxShadow: isDark ? 'none' : '0 6px 20px rgba(0,0,0,0.08)',
             }}
             labelFormatter={(value) => {
               const date = new Date(value)
@@ -98,10 +108,10 @@ export default function VkReachChart({ data }: Props) {
           <Line
             type="monotone"
             dataKey="reach"
-            stroke="#00D4FF"
+            stroke={reachColor}
             name="Охват"
-            strokeWidth={3}
-            filter="url(#glow-reach)"
+            strokeWidth={isDark ? 3 : 2}
+            filter={isDark ? 'url(#glow-reach)' : undefined}
             isAnimationActive={inView}
             animationDuration={1500}
             animationEasing="ease-out"
@@ -110,10 +120,10 @@ export default function VkReachChart({ data }: Props) {
           <Line
             type="monotone"
             dataKey="views"
-            stroke="#10B981"
+            stroke={viewsColor}
             name="Показы"
-            strokeWidth={3}
-            filter="url(#glow-views)"
+            strokeWidth={isDark ? 3 : 2}
+            filter={isDark ? 'url(#glow-views)' : undefined}
             isAnimationActive={inView}
             animationDuration={1500}
             animationEasing="ease-out"

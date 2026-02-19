@@ -12,8 +12,8 @@ import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import type { CounterBehaviorTimeline } from '@/types'
 import { formatDate } from '@/utils/formatters'
-import { NEON_COLORS } from '@/utils/colors'
 import { useChartTheme } from '@/hooks/useChartTheme'
+import { useTheme } from '@/context/ThemeContext'
 import MetricInsightHint from './MetricInsightHint'
 
 interface Props {
@@ -26,6 +26,8 @@ interface Props {
 export default function MetricMiniChart({ title, metricKey, counters, unit = '%' }: Props) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
   const chartTheme = useChartTheme()
+  const { isDark } = useTheme()
+
   // Prepare chart data: merge all counter timelines by date
   const dateMap = new Map<string, any>()
 
@@ -58,10 +60,12 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
       animate={inView ? { opacity: 1 } : {}}
       className="glass-card rounded-xl p-4 relative overflow-hidden"
     >
-      {/* Corner gradient accent */}
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-premium opacity-10 blur-2xl" />
+      {/* Corner gradient accent — dark only */}
+      {isDark && (
+        <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-premium opacity-10 blur-2xl" />
+      )}
 
-      <h3 className="text-md font-semibold text-dark-text mb-3 relative z-10">{title}</h3>
+      <h3 className="text-md font-semibold text-dark-text mb-1 relative z-10">{title}</h3>
 
       {counters.length === 0 ? (
         <p className="text-sm text-dark-text-secondary text-center py-8">Нет данных</p>
@@ -69,17 +73,19 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
         <>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={chartData}>
-              <defs>
-                {counters.map((_counter, idx) => (
-                  <filter key={`glow-${idx}`} id={`glow-${idx}`} x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                    <feMerge>
-                      <feMergeNode in="coloredBlur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                ))}
-              </defs>
+              {isDark && (
+                <defs>
+                  {counters.map((_counter, idx) => (
+                    <filter key={`glow-${idx}`} id={`glow-${idx}`} x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+                      <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  ))}
+                </defs>
+              )}
 
               <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
               <XAxis
@@ -96,7 +102,8 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
                   borderRadius: '8px',
                   fontSize: 12,
                   color: chartTheme.tooltipText,
-                  backdropFilter: 'blur(12px)',
+                  backdropFilter: isDark ? 'blur(12px)' : 'none',
+                  boxShadow: isDark ? 'none' : '0 6px 20px rgba(0,0,0,0.08)',
                 }}
                 formatter={(value: any, name: string) => {
                   const idx = parseInt(name.replace('counter_', ''))
@@ -121,16 +128,16 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
                   )}${unit}`
                 }}
               />
-              {counters.map((counter, idx) => (
+              {counters.map((_counter, idx) => (
                 <Line
-                  key={counter.counter_id}
+                  key={_counter.counter_id}
                   type="monotone"
                   dataKey={`counter_${idx}`}
                   name={`counter_${idx}`}
-                  stroke={NEON_COLORS[idx % NEON_COLORS.length]}
-                  strokeWidth={3}
+                  stroke={chartTheme.lineColors[idx % chartTheme.lineColors.length]}
+                  strokeWidth={isDark ? 3 : 2}
                   dot={false}
-                  filter={`url(#glow-${idx})`}
+                  filter={isDark ? `url(#glow-${idx})` : undefined}
                   isAnimationActive={inView}
                   animationDuration={1500}
                   animationEasing="ease-out"
