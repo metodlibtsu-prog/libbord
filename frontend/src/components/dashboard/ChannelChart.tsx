@@ -100,10 +100,11 @@ export default function ChannelChart({ data, isLoading }: Props) {
               backgroundColor: chartTheme.tooltipBg,
               border: `1px solid ${chartTheme.tooltipBorder}`,
               borderRadius: '12px',
-              color: chartTheme.tooltipText,
               boxShadow: isDark ? 'none' : '0 8px 24px rgba(0,0,0,0.08)',
               padding: '8px 12px',
             }}
+            labelStyle={{ color: chartTheme.tooltipText, fontWeight: 500 }}
+            itemStyle={{ color: chartTheme.tooltipText }}
             cursor={{ fill: chartTheme.cursorFill }}
           />
           <Bar
