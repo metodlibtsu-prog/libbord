@@ -61,13 +61,20 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
 
   // Auto-aggregate: weekly for quarter/year, daily otherwise
   const counterKeys = visibleCounters.map((_, idx) => `counter_${idx}`)
-  const { data: chartData, isAggregated } = useMemo(
-    () => smartAggregate(
-      dailyRows.map((r) => ({ ...r, date: formatDate(r.date) })),
-      counterKeys,
-    ),
+  const { data: aggregatedData, isAggregated } = useMemo(
+    () => smartAggregate(dailyRows, counterKeys),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dailyRows, metricKey],
+  )
+  // Format date labels AFTER aggregation:
+  // - daily: "2025-01-15" → "15 янв."
+  // - weekly: getMondayLabel already produced a localized string, leave as-is
+  const chartData = useMemo(
+    () =>
+      isAggregated
+        ? aggregatedData
+        : aggregatedData.map((r) => ({ ...r, date: formatDate(r.date) })),
+    [aggregatedData, isAggregated],
   )
 
   // Smart Y-axis domain: auto-fit with small padding
