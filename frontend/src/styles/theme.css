@@ -1,37 +1,95 @@
-/* Premium Dark Theme CSS Variables and Utilities */
+/* ============================================
+   LIBBOARD — Theme Variables
+   ============================================ */
 
-:root {
-  /* Base Colors */
+/* === DARK THEME (default) === */
+:root,
+[data-theme="dark"] {
   --bg-primary: #0D1117;
-  --bg-secondary: #161B22;
-  --border-primary: #30363D;
+  --bg-card: #161B22;
+  --bg-secondary: #21262D;
 
-  /* Text */
   --text-primary: #E6EDF3;
   --text-secondary: #8B949E;
 
-  /* Gradients */
+  --border-primary: #30363D;
+
+  /* For rgba() usage */
+  --card-rgb: 22, 27, 34;
+  --border-rgb: 48, 54, 61;
+
+  /* Recharts */
+  --chart-grid: #30363D;
+  --chart-text: #8B949E;
+  --tooltip-bg: #161B22;
+  --tooltip-border: #30363D;
+  --tooltip-text: #E6EDF3;
+  --cursor-fill: rgba(0, 212, 255, 0.1);
+
+  /* Scrollbar */
+  --scrollbar-track: #0D1117;
+  --scrollbar-thumb: #30363D;
+
+  /* Accent (same for both themes) */
   --gradient-cyan: #00D4FF;
   --gradient-purple: #7B2FBE;
   --gradient-pink: #FF006E;
-
-  /* Semantic Colors */
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-error: #EF4444;
-
-  /* Glow Effects */
   --glow-radius: 20px;
   --glow-opacity: 0.5;
 }
 
-/* Glassmorphism Card */
+/* === LIGHT THEME === */
+[data-theme="light"] {
+  --bg-primary: #F8FAFC;
+  --bg-card: #FFFFFF;
+  --bg-secondary: #F1F5F9;
+
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+
+  --border-primary: #E2E8F0;
+
+  /* For rgba() usage */
+  --card-rgb: 255, 255, 255;
+  --border-rgb: 226, 232, 240;
+
+  /* Recharts */
+  --chart-grid: #E2E8F0;
+  --chart-text: #64748B;
+  --tooltip-bg: #FFFFFF;
+  --tooltip-border: #E2E8F0;
+  --tooltip-text: #0F172A;
+  --cursor-fill: rgba(0, 212, 255, 0.05);
+
+  /* Scrollbar */
+  --scrollbar-track: #F8FAFC;
+  --scrollbar-thumb: #CBD5E1;
+
+  /* Accent (same for both themes) */
+  --gradient-cyan: #00D4FF;
+  --gradient-purple: #7B2FBE;
+  --gradient-pink: #FF006E;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+}
+
+/* ============================================
+   GLASSMORPHISM — theme-adaptive
+   ============================================ */
 .glass-card {
-  background: rgba(22, 27, 34, 0.7);
+  background: rgba(var(--card-rgb), 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(48, 54, 61, 0.5);
+  border: 1px solid rgba(var(--border-rgb), 0.6);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="light"] .glass-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .glass-card-hover {
@@ -39,13 +97,19 @@
 }
 
 .glass-card-hover:hover {
-  background: rgba(22, 27, 34, 0.85);
+  background: rgba(var(--card-rgb), 0.95);
   border-color: rgba(0, 212, 255, 0.3);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
   transform: translateY(-2px);
 }
 
-/* Gradient Text */
+[data-theme="light"] .glass-card-hover:hover {
+  box-shadow: 0 4px 24px rgba(0, 212, 255, 0.12), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ============================================
+   GRADIENT TEXT
+   ============================================ */
 .gradient-text {
   background: linear-gradient(135deg, #00D4FF 0%, #7B2FBE 50%, #FF006E 100%);
   -webkit-background-clip: text;
@@ -54,7 +118,9 @@
   background-size: 200% 200%;
 }
 
-/* Neon Glow Animations */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
 @keyframes neon-pulse {
   0%, 100% {
     box-shadow:
@@ -74,12 +140,10 @@
   animation: neon-pulse 2s ease-in-out infinite;
 }
 
-/* Smooth Transitions */
 .transition-smooth {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Hover Lift Effect */
 .hover-lift {
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
@@ -88,14 +152,9 @@
   transform: translateY(-4px);
 }
 
-/* Shimmer Effect */
 @keyframes shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
 }
 
 .shimmer {
@@ -109,14 +168,16 @@
   animation: shimmer 2s infinite;
 }
 
-/* Custom Scrollbar for Glass Cards */
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
 .glass-card::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 .glass-card::-webkit-scrollbar-track {
-  background: rgba(48, 54, 61, 0.3);
+  background: rgba(var(--border-rgb), 0.2);
   border-radius: 3px;
 }
 

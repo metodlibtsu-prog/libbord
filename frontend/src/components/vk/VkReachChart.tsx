@@ -12,6 +12,7 @@ import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import type { VkReachPoint } from '@/types'
 import { formatNumber } from '@/utils/formatters'
+import { useChartTheme } from '@/hooks/useChartTheme'
 
 interface Props {
   data: VkReachPoint[]
@@ -19,6 +20,7 @@ interface Props {
 
 export default function VkReachChart({ data }: Props) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
+  const chartTheme = useChartTheme()
 
   if (!data || data.length === 0) {
     return (
@@ -61,11 +63,11 @@ export default function VkReachChart({ data }: Props) {
             </filter>
           </defs>
 
-          <CartesianGrid strokeDasharray="3 3" stroke="#30363D" horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 12, fill: '#8B949E' }}
-            stroke="#8B949E"
+            tick={{ fontSize: 12, fill: chartTheme.textColor }}
+            stroke={chartTheme.textColor}
             tickLine={false}
             tickFormatter={(value) => {
               const date = new Date(value)
@@ -73,18 +75,18 @@ export default function VkReachChart({ data }: Props) {
             }}
           />
           <YAxis
-            tick={{ fontSize: 12, fill: '#8B949E' }}
-            stroke="#8B949E"
+            tick={{ fontSize: 12, fill: chartTheme.textColor }}
+            stroke={chartTheme.textColor}
             tickLine={false}
             tickFormatter={(v) => formatNumber(v)}
           />
           <Tooltip
             formatter={(value: number) => formatNumber(value)}
             contentStyle={{
-              backgroundColor: '#161B22',
-              border: '1px solid #30363D',
+              backgroundColor: chartTheme.tooltipBg,
+              border: `1px solid ${chartTheme.tooltipBorder}`,
               borderRadius: '8px',
-              color: '#E6EDF3',
+              color: chartTheme.tooltipText,
               backdropFilter: 'blur(12px)',
             }}
             labelFormatter={(value) => {
@@ -92,7 +94,7 @@ export default function VkReachChart({ data }: Props) {
               return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`
             }}
           />
-          <Legend wrapperStyle={{ color: '#8B949E' }} />
+          <Legend wrapperStyle={{ color: chartTheme.legendColor }} />
           <Line
             type="monotone"
             dataKey="reach"

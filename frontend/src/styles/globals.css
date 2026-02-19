@@ -6,7 +6,10 @@
 
 @layer base {
   body {
-    @apply min-h-screen bg-dark-bg text-dark-text antialiased;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    @apply min-h-screen antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   /* Smooth scrolling */
@@ -14,18 +17,18 @@
     scroll-behavior: smooth;
   }
 
-  /* Custom scrollbar */
+  /* Custom scrollbar — theme-adaptive via CSS vars */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: var(--bg-primary);
+    background: var(--scrollbar-track);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--border-primary);
+    background: var(--scrollbar-thumb);
     border-radius: 4px;
   }
 
@@ -36,7 +39,7 @@
   /* Firefox scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--border-primary) var(--bg-primary);
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 }
 
@@ -45,3 +48,67 @@
     text-wrap: balance;
   }
 }
+
+/* ============================================
+   LIGHT THEME — Override dark-* Tailwind classes
+   ============================================ */
+[data-theme="light"] .bg-dark-bg    { background-color: #F8FAFC; }
+[data-theme="light"] .bg-dark-card  { background-color: #FFFFFF; }
+[data-theme="light"] .text-dark-text           { color: #0F172A; }
+[data-theme="light"] .text-dark-text-secondary { color: #64748B; }
+[data-theme="light"] .border-dark-border       { border-color: #E2E8F0; }
+[data-theme="light"] .divide-dark-border > * + * { border-color: #E2E8F0; }
+
+/* DashboardPage background */
+[data-theme="light"] .min-h-screen.bg-dark-bg {
+  background-color: #F8FAFC;
+}
+
+/* ============================================
+   DARK THEME — Override white/gray Admin classes
+   ============================================ */
+[data-theme="dark"] .bg-white    { background-color: #161B22; }
+[data-theme="dark"] .bg-gray-50  { background-color: #0D1117; }
+[data-theme="dark"] .bg-gray-100 { background-color: #21262D; }
+[data-theme="dark"] .bg-gray-200 { background-color: #30363D; }
+
+[data-theme="dark"] .text-gray-900 { color: #E6EDF3; }
+[data-theme="dark"] .text-gray-800 { color: #D1D9E0; }
+[data-theme="dark"] .text-gray-700 { color: #C9D1D9; }
+[data-theme="dark"] .text-gray-600 { color: #B1BAC4; }
+[data-theme="dark"] .text-gray-500 { color: #8B949E; }
+[data-theme="dark"] .text-gray-400 { color: #6E7681; }
+[data-theme="dark"] .text-gray-300 { color: #484F58; }
+
+[data-theme="dark"] .border-gray-200 { border-color: #30363D; }
+[data-theme="dark"] .border-gray-300 { border-color: #30363D; }
+[data-theme="dark"] .border-gray-100 { border-color: #21262D; }
+[data-theme="dark"] .divide-gray-200 > * + * { border-color: #30363D; }
+
+[data-theme="dark"] .hover\:bg-gray-50:hover  { background-color: #21262D; }
+[data-theme="dark"] .hover\:bg-gray-100:hover { background-color: #30363D; }
+
+/* Admin forms */
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: #21262D;
+  color: #E6EDF3;
+  border-color: #30363D;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #6E7681;
+}
+
+/* Admin badges */
+[data-theme="dark"] .bg-green-100 { background-color: rgba(16, 185, 129, 0.15); }
+[data-theme="dark"] .bg-red-100   { background-color: rgba(239, 68, 68, 0.15); }
+[data-theme="dark"] .bg-blue-100  { background-color: rgba(59, 130, 246, 0.15); }
+[data-theme="dark"] .bg-yellow-50 { background-color: rgba(245, 158, 11, 0.1); }
+[data-theme="dark"] .border-yellow-200 { border-color: rgba(245, 158, 11, 0.3); }
+[data-theme="dark"] .text-yellow-800   { color: #F59E0B; }
+[data-theme="dark"] .text-green-700    { color: #10B981; }
+[data-theme="dark"] .text-red-700      { color: #EF4444; }
+[data-theme="dark"] .text-blue-700     { color: #3B82F6; }

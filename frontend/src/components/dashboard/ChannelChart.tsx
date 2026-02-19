@@ -4,6 +4,7 @@ import { useInView } from 'react-intersection-observer'
 import type { ChannelMetric, ChannelType } from '@/types'
 import { CHANNEL_COLORS, CHANNEL_LABELS } from '@/utils/colors'
 import { formatNumber } from '@/utils/formatters'
+import { useChartTheme } from '@/hooks/useChartTheme'
 import LoadingSpinner from '@/components/common/LoadingSpinner'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 
 export default function ChannelChart({ data, isLoading }: Props) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
+  const chartTheme = useChartTheme()
 
   if (isLoading) return <LoadingSpinner />
   if (!data || data.length === 0) {
@@ -51,29 +53,29 @@ export default function ChannelChart({ data, isLoading }: Props) {
             ))}
           </defs>
 
-          <CartesianGrid strokeDasharray="3 3" stroke="#30363D" horizontal={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
           <XAxis
             type="number"
             tickFormatter={(v) => formatNumber(v)}
-            stroke="#8B949E"
-            tick={{ fill: '#8B949E', fontSize: 12 }}
+            stroke={chartTheme.textColor}
+            tick={{ fill: chartTheme.textColor, fontSize: 12 }}
           />
           <YAxis
             type="category"
             dataKey="name"
             width={110}
-            stroke="#8B949E"
-            tick={{ fill: '#E6EDF3', fontSize: 13 }}
+            stroke={chartTheme.textColor}
+            tick={{ fill: chartTheme.tooltipText, fontSize: 13 }}
           />
           <Tooltip
             formatter={(value: number) => formatNumber(value)}
             contentStyle={{
-              backgroundColor: '#161B22',
-              border: '1px solid #30363D',
+              backgroundColor: chartTheme.tooltipBg,
+              border: `1px solid ${chartTheme.tooltipBorder}`,
               borderRadius: '8px',
-              color: '#E6EDF3',
+              color: chartTheme.tooltipText,
             }}
-            cursor={{ fill: 'rgba(0, 212, 255, 0.1)' }}
+            cursor={{ fill: chartTheme.cursorFill }}
           />
           <Bar
             dataKey="views"

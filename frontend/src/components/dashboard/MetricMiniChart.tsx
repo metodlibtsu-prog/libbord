@@ -13,6 +13,7 @@ import { useInView } from 'react-intersection-observer'
 import type { CounterBehaviorTimeline } from '@/types'
 import { formatDate } from '@/utils/formatters'
 import { NEON_COLORS } from '@/utils/colors'
+import { useChartTheme } from '@/hooks/useChartTheme'
 import MetricInsightHint from './MetricInsightHint'
 
 interface Props {
@@ -24,6 +25,7 @@ interface Props {
 
 export default function MetricMiniChart({ title, metricKey, counters, unit = '%' }: Props) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
+  const chartTheme = useChartTheme()
   // Prepare chart data: merge all counter timelines by date
   const dateMap = new Map<string, any>()
 
@@ -79,21 +81,21 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
                 ))}
               </defs>
 
-              <CartesianGrid strokeDasharray="3 3" stroke="#30363D" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: '#8B949E' }}
-                stroke="#8B949E"
+                tick={{ fontSize: 11, fill: chartTheme.textColor }}
+                stroke={chartTheme.textColor}
                 tickLine={false}
               />
-              <YAxis tick={{ fontSize: 11, fill: '#8B949E' }} stroke="#8B949E" tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: chartTheme.textColor }} stroke={chartTheme.textColor} tickLine={false} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#161B22',
-                  border: '1px solid #30363D',
+                  backgroundColor: chartTheme.tooltipBg,
+                  border: `1px solid ${chartTheme.tooltipBorder}`,
                   borderRadius: '8px',
                   fontSize: 12,
-                  color: '#E6EDF3',
+                  color: chartTheme.tooltipText,
                   backdropFilter: 'blur(12px)',
                 }}
                 formatter={(value: any, name: string) => {
@@ -107,7 +109,7 @@ export default function MetricMiniChart({ title, metricKey, counters, unit = '%'
                 }}
               />
               <Legend
-                wrapperStyle={{ fontSize: 11, color: '#8B949E' }}
+                wrapperStyle={{ fontSize: 11, color: chartTheme.legendColor }}
                 formatter={(value) => {
                   const idx = parseInt(value.replace('counter_', ''))
                   const counter = counters[idx]

@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Libboard — Premium Analytics Dashboard</title>
     <meta name="description" content="Премиум аналитический дашборд для библиотек" />
+    <script>
+      // Anti-flicker: apply theme before React mounts
+      (function() {
+        var t = localStorage.getItem('theme');
+        document.documentElement.dataset.theme = (t === 'light' || t === 'dark') ? t : 'dark';
+      })();
+    </script>
   </head>
   <body class="bg-dark-bg text-dark-text antialiased">
     <div id="root"></div>
