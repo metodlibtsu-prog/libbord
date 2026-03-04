@@ -108,6 +108,7 @@ class YandexMetrikaService:
         counter_id: str,
         date_from: datetime.date,
         date_to: datetime.date,
+        exclude_robots: bool = True,
     ) -> dict[str, Any]:
         """
         Fetch metrics data from Yandex.Metrika for given date range
@@ -153,6 +154,8 @@ class YandexMetrikaService:
             "accuracy": "high",
             "limit": api_limit,
         }
+        if exclude_robots:
+            params["filters"] = "!ym:s:isRobot=='Yes'"
 
         response = await self.client.get(
             f"{self.API_BASE_URL}/stat/v1/data", params=params

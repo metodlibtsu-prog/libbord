@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import Date, Float, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import Boolean, Date, Float, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,7 +11,7 @@ from app.models.base import Base, IdMixin, TimestampMixin
 class TrafficMetric(Base, IdMixin, TimestampMixin):
     __tablename__ = "traffic_metrics"
     __table_args__ = (
-        UniqueConstraint("library_id", "channel_id", "counter_id", "date", name="uq_traffic_metric"),
+        UniqueConstraint("library_id", "channel_id", "counter_id", "date", "exclude_robots", name="uq_traffic_metric"),
     )
 
     library_id: Mapped[uuid.UUID] = mapped_column(
@@ -24,6 +24,7 @@ class TrafficMetric(Base, IdMixin, TimestampMixin):
         UUID(as_uuid=True), ForeignKey("metric_counters.id", ondelete="SET NULL")
     )
     date: Mapped[date] = mapped_column(Date, nullable=False)
+    exclude_robots: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     views: Mapped[int] = mapped_column(Integer, default=0)
     visits: Mapped[int] = mapped_column(Integer, default=0)
     users: Mapped[int] = mapped_column(Integer, default=0)

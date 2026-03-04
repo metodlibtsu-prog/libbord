@@ -33,8 +33,11 @@ export async function fetchOverview(
   period: Period,
   dateFrom?: string,
   dateTo?: string,
+  counterId?: string,
+  excludeRobots = true,
 ): Promise<KpiOverview> {
-  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
+  const params: Record<string, unknown> = { library_id: libraryId, period, exclude_robots: excludeRobots, ...dateParams(dateFrom, dateTo) }
+  if (counterId) params.counter_id = counterId
   const { data } = await apiClient.get('/dashboard/overview', { params })
   return data
 }
@@ -44,8 +47,11 @@ export async function fetchChannels(
   period: Period,
   dateFrom?: string,
   dateTo?: string,
+  counterId?: string,
+  excludeRobots = true,
 ): Promise<ChannelMetric[]> {
-  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
+  const params: Record<string, unknown> = { library_id: libraryId, period, exclude_robots: excludeRobots, ...dateParams(dateFrom, dateTo) }
+  if (counterId) params.counter_id = counterId
   const { data } = await apiClient.get('/dashboard/channels', { params })
   return data
 }
@@ -56,8 +62,9 @@ export async function fetchChannelTrend(
   period: Period,
   dateFrom?: string,
   dateTo?: string,
+  excludeRobots = true,
 ): Promise<ChannelTrendPoint[]> {
-  const params = { library_id: libraryId, channel_id: channelId, period, ...dateParams(dateFrom, dateTo) }
+  const params = { library_id: libraryId, channel_id: channelId, period, exclude_robots: excludeRobots, ...dateParams(dateFrom, dateTo) }
   const { data } = await apiClient.get('/dashboard/channels/trend', { params })
   return data
 }
@@ -67,8 +74,11 @@ export async function fetchBehavior(
   period: Period,
   dateFrom?: string,
   dateTo?: string,
+  counterId?: string,
+  excludeRobots = true,
 ): Promise<BehaviorData> {
-  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
+  const params: Record<string, unknown> = { library_id: libraryId, period, exclude_robots: excludeRobots, ...dateParams(dateFrom, dateTo) }
+  if (counterId) params.counter_id = counterId
   const { data } = await apiClient.get('/dashboard/behavior', { params })
   return data
 }
@@ -100,8 +110,11 @@ export async function fetchInsights(
   period: Period,
   dateFrom?: string,
   dateTo?: string,
+  counterId?: string,
+  excludeRobots = true,
 ): Promise<Insight[]> {
-  const params = { library_id: libraryId, period, ...dateParams(dateFrom, dateTo) }
+  const params: Record<string, unknown> = { library_id: libraryId, period, exclude_robots: excludeRobots, ...dateParams(dateFrom, dateTo) }
+  if (counterId) params.counter_id = counterId
   const { data } = await apiClient.get('/dashboard/insights', { params })
   return data
 }

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { PeriodProvider } from '@/context/PeriodContext'
 import { AuthProvider } from '@/context/AuthContext'
+import { RobotsProvider } from '@/context/RobotsContext'
 import DashboardPage from '@/pages/DashboardPage'
 import AdminLoginPage from '@/pages/AdminLoginPage'
 import AdminDashboardPage from '@/pages/AdminDashboardPage'
@@ -28,6 +29,7 @@ export default function App() {
       <ThemeProvider>
       <AuthProvider>
         <PeriodProvider>
+        <RobotsProvider>
           <BrowserRouter>
             <Routes>
               {/* Public dashboard */}
@@ -45,6 +47,7 @@ export default function App() {
               </Route>
             </Routes>
           </BrowserRouter>
+        </RobotsProvider>
         </PeriodProvider>
       </AuthProvider>
       </ThemeProvider>

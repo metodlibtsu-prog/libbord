@@ -2,15 +2,19 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import PeriodSelector from '@/components/common/PeriodSelector'
 import DateRangePicker from '@/components/common/DateRangePicker'
+import RobotsToggle from '@/components/common/RobotsToggle'
 import Logo from '@/components/common/Logo'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
+import type { MetricCounter } from '@/types'
+import CounterSelector from '@/components/common/CounterSelector'
 
 interface Props {
   libraryName: string
+  counters?: MetricCounter[]
 }
 
-export default function Header({ libraryName }: Props) {
+export default function Header({ libraryName, counters }: Props) {
   const { session } = useAuth()
   const { isDark, toggleTheme } = useTheme()
 
@@ -53,6 +57,8 @@ export default function Header({ libraryName }: Props) {
               )}
             </motion.button>
 
+            {counters && counters.length > 0 && <CounterSelector counters={counters} />}
+            <RobotsToggle />
             <PeriodSelector />
             <DateRangePicker />
 

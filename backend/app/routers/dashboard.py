@@ -43,20 +43,23 @@ async def overview(
     counter_id: uuid.UUID | None = None,
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
+    exclude_robots: bool = Query(True),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_overview(db, library_id, period, counter_id, date_from, date_to)
+    return await dashboard_service.get_overview(db, library_id, period, counter_id, date_from, date_to, exclude_robots)
 
 
 @router.get("/channels", response_model=list[ChannelMetric])
 async def channels(
     library_id: uuid.UUID,
     period: Period = Period.month,
+    counter_id: uuid.UUID | None = None,
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
+    exclude_robots: bool = Query(True),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_channels(db, library_id, period, date_from, date_to)
+    return await dashboard_service.get_channels(db, library_id, period, date_from, date_to, counter_id, exclude_robots)
 
 
 @router.get("/channels/trend", response_model=list[ChannelTrendPoint])
@@ -66,9 +69,10 @@ async def channel_trend(
     period: Period = Period.month,
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
+    exclude_robots: bool = Query(True),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_channel_trend(db, library_id, channel_id, period, date_from, date_to)
+    return await dashboard_service.get_channel_trend(db, library_id, channel_id, period, date_from, date_to, exclude_robots)
 
 
 @router.get("/behavior", response_model=BehaviorData)
@@ -78,9 +82,10 @@ async def behavior(
     counter_id: uuid.UUID | None = None,
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
+    exclude_robots: bool = Query(True),
     db: AsyncSession = Depends(get_db),
 ):
-    return await dashboard_service.get_behavior(db, library_id, period, counter_id, date_from, date_to)
+    return await dashboard_service.get_behavior(db, library_id, period, counter_id, date_from, date_to, exclude_robots)
 
 
 @router.get("/engagement", response_model=EngagementData)
@@ -111,10 +116,11 @@ async def insights(
     counter_id: uuid.UUID | None = None,
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
+    exclude_robots: bool = Query(True),
     db: AsyncSession = Depends(get_db),
 ):
-    overview_data = await dashboard_service.get_overview(db, library_id, period, counter_id, date_from, date_to)
-    behavior_data = await dashboard_service.get_behavior(db, library_id, period, counter_id, date_from, date_to)
+    overview_data = await dashboard_service.get_overview(db, library_id, period, counter_id, date_from, date_to, exclude_robots)
+    behavior_data = await dashboard_service.get_behavior(db, library_id, period, counter_id, date_from, date_to, exclude_robots)
     engagement_data = await dashboard_service.get_engagement(db, library_id, period, date_from, date_to)
     return generate_insights(overview_data, behavior_data, engagement_data)
 

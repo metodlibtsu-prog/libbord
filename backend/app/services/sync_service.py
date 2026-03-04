@@ -116,8 +116,14 @@ async def sync_library_metrics(
                     f" ({(effective_date_to - effective_date_from).days + 1} days)"
                 )
 
+                # Fetch metrics both with and without robot filter
                 metrics_data = await ym_service.fetch_metrics(
-                    counter.yandex_counter_id, effective_date_from, effective_date_to
+                    counter.yandex_counter_id, effective_date_from, effective_date_to,
+                    exclude_robots=True,
+                )
+                metrics_data_with_robots = await ym_service.fetch_metrics(
+                    counter.yandex_counter_id, effective_date_from, effective_date_to,
+                    exclude_robots=False,
                 )
 
                 # Match counter to its channel by name
@@ -141,40 +147,44 @@ async def sync_library_metrics(
                     await db.commit()
                     continue
 
-                # c. Upsert traffic metrics
-                for date_str, metrics in metrics_data.items():
-                    date_obj = datetime.date.fromisoformat(date_str)
+                # c. Upsert traffic metrics — both with and without robot filter
+                all_datasets = [
+                    (metrics_data, True),
+                    (metrics_data_with_robots, False),
+                ]
+                for dataset, excl_robots in all_datasets:
+                    for date_str, metrics in dataset.items():
+                        date_obj = datetime.date.fromisoformat(date_str)
 
-                    # Prepare upsert statement
-                    stmt = insert(TrafficMetric).values(
-                        library_id=library_id,
-                        channel_id=channel.id,
-                        counter_id=counter.id,
-                        date=date_obj,
-                        views=metrics["views"],
-                        visits=metrics["visits"],
-                        users=metrics["users"],
-                        avg_time=metrics["avg_time"],
-                        depth=metrics["depth"],
-                        bounce_rate=metrics["bounce_rate"],
-                        return_rate=metrics["return_rate"],
-                    )
+                        stmt = insert(TrafficMetric).values(
+                            library_id=library_id,
+                            channel_id=channel.id,
+                            counter_id=counter.id,
+                            date=date_obj,
+                            exclude_robots=excl_robots,
+                            views=metrics["views"],
+                            visits=metrics["visits"],
+                            users=metrics["users"],
+                            avg_time=metrics["avg_time"],
+                            depth=metrics["depth"],
+                            bounce_rate=metrics["bounce_rate"],
+                            return_rate=metrics["return_rate"],
+                        )
 
-                    # On conflict, update all fields
-                    stmt = stmt.on_conflict_do_update(
-                        index_elements=["library_id", "channel_id", "counter_id", "date"],
-                        set_={
-                            "views": stmt.excluded.views,
-                            "visits": stmt.excluded.visits,
-                            "users": stmt.excluded.users,
-                            "avg_time": stmt.excluded.avg_time,
-                            "depth": stmt.excluded.depth,
-                            "bounce_rate": stmt.excluded.bounce_rate,
-                            "return_rate": stmt.excluded.return_rate,
-                        },
-                    )
+                        stmt = stmt.on_conflict_do_update(
+                            index_elements=["library_id", "channel_id", "counter_id", "date", "exclude_robots"],
+                            set_={
+                                "views": stmt.excluded.views,
+                                "visits": stmt.excluded.visits,
+                                "users": stmt.excluded.users,
+                                "avg_time": stmt.excluded.avg_time,
+                                "depth": stmt.excluded.depth,
+                                "bounce_rate": stmt.excluded.bounce_rate,
+                                "return_rate": stmt.excluded.return_rate,
+                            },
+                        )
 
-                    await db.execute(stmt)
+                        await db.execute(stmt)
 
                 await db.commit()
 

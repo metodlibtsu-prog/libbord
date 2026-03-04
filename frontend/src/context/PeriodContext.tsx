@@ -8,6 +8,8 @@ interface PeriodContextValue {
   customTo: string
   setCustomFrom: (d: string) => void
   setCustomTo: (d: string) => void
+  counterId: string
+  setCounterId: (id: string) => void
 }
 
 const PeriodContext = createContext<PeriodContextValue>({
@@ -17,15 +19,18 @@ const PeriodContext = createContext<PeriodContextValue>({
   customTo: '',
   setCustomFrom: () => {},
   setCustomTo: () => {},
+  counterId: '',
+  setCounterId: () => {},
 })
 
 export function PeriodProvider({ children }: { children: ReactNode }) {
   const [period, setPeriod] = useState<Period>('week')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
+  const [counterId, setCounterId] = useState('')
 
   return (
-    <PeriodContext.Provider value={{ period, setPeriod, customFrom, customTo, setCustomFrom, setCustomTo }}>
+    <PeriodContext.Provider value={{ period, setPeriod, customFrom, customTo, setCustomFrom, setCustomTo, counterId, setCounterId }}>
       {children}
     </PeriodContext.Provider>
   )

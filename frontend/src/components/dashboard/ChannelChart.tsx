@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, CartesianGrid, Cell, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import type { ChannelMetric, ChannelType } from '@/types'
@@ -41,11 +41,15 @@ export default function ChannelChart({ data, isLoading }: Props) {
     const darkColor  = CHANNEL_COLORS[type] || CHANNEL_COLORS.other
     const lightColor = CHANNEL_COLORS_LIGHT[type] || '#64748B'
     return {
-      name:  ch.custom_name || CHANNEL_LABELS[type] || ch.channel_type,
-      views: ch.views,
-      fill:  isDark ? darkColor : lightColor,
+      name:   ch.custom_name || CHANNEL_LABELS[type] || ch.channel_type,
+      views:  ch.views,
+      visits: ch.visits,
+      fill:   isDark ? darkColor : lightColor,
     }
   })
+
+  // Height grows with number of channels to fit two bars per row
+  const chartHeight = Math.max(300, filteredData.length * 64)
 
   return (
     <motion.div
@@ -58,15 +62,21 @@ export default function ChannelChart({ data, isLoading }: Props) {
       {isDark && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-premium" />}
 
       <h2 className="text-lg font-semibold text-dark-text mb-1">Каналы привлечения</h2>
-      <p className="text-sm text-dark-text-secondary mb-5">Просмотры по источникам трафика</p>
+      <p className="text-sm text-dark-text-secondary mb-5">Просмотры и визиты по источникам трафика</p>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={chartData} layout="vertical" margin={{ left: 120 }}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={chartData} layout="vertical" margin={{ left: 120 }} barCategoryGap="25%" barGap={3}>
           <defs>
             {chartData.map((item, idx) => (
               <linearGradient key={idx} id={`ch-grad-${idx}`} x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%"   stopColor={item.fill} stopOpacity={isDark ? 0.65 : 0.75} />
                 <stop offset="100%" stopColor={item.fill} stopOpacity={1} />
+              </linearGradient>
+            ))}
+            {chartData.map((item, idx) => (
+              <linearGradient key={`v-${idx}`} id={`ch-vis-${idx}`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stopColor={item.fill} stopOpacity={isDark ? 0.35 : 0.45} />
+                <stop offset="100%" stopColor={item.fill} stopOpacity={isDark ? 0.6 : 0.7} />
               </linearGradient>
             ))}
           </defs>
@@ -95,7 +105,10 @@ export default function ChannelChart({ data, isLoading }: Props) {
             axisLine={false}
           />
           <Tooltip
-            formatter={(value: number) => [formatNumber(value), 'Просмотры']}
+            formatter={(value: number, name: string) => [
+              formatNumber(value),
+              name === 'views' ? 'Просмотры' : 'Визиты',
+            ]}
             contentStyle={{
               backgroundColor: chartTheme.tooltipBg,
               border: `1px solid ${chartTheme.tooltipBorder}`,
@@ -107,16 +120,35 @@ export default function ChannelChart({ data, isLoading }: Props) {
             itemStyle={{ color: chartTheme.tooltipText }}
             cursor={{ fill: chartTheme.cursorFill }}
           />
+          <Legend
+            formatter={(value) => (
+              <span style={{ color: chartTheme.tooltipText, fontSize: 12 }}>
+                {value === 'views' ? 'Просмотры' : 'Визиты'}
+              </span>
+            )}
+          />
           <Bar
             dataKey="views"
-            name="Просмотры"
-            radius={[0, 8, 8, 0]}
+            name="views"
+            radius={[0, 6, 6, 0]}
             isAnimationActive={inView}
             animationDuration={1000}
             animationEasing="ease-out"
           >
             {chartData.map((_entry, index) => (
-              <Cell key={`cell-${index}`} fill={`url(#ch-grad-${index})`} />
+              <Cell key={`cell-v-${index}`} fill={`url(#ch-grad-${index})`} />
+            ))}
+          </Bar>
+          <Bar
+            dataKey="visits"
+            name="visits"
+            radius={[0, 6, 6, 0]}
+            isAnimationActive={inView}
+            animationDuration={1000}
+            animationEasing="ease-out"
+          >
+            {chartData.map((_entry, index) => (
+              <Cell key={`cell-vis-${index}`} fill={`url(#ch-vis-${index})`} />
             ))}
           </Bar>
         </BarChart>

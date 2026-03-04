@@ -32,6 +32,7 @@ async def get_overview(
     counter_id: uuid.UUID | None = None,
     date_from_custom: date | None = None,
     date_to_custom: date | None = None,
+    exclude_robots: bool = True,
 ) -> KpiOverview:
     date_from, date_to, prev_from, prev_to = resolve_period_or_custom(period, date_from_custom, date_to_custom)
 
@@ -44,6 +45,7 @@ async def get_overview(
             TrafficMetric.library_id == library_id,
             TrafficMetric.date >= d_from,
             TrafficMetric.date <= d_to,
+            TrafficMetric.exclude_robots == exclude_robots,
         )
         if counter_id:
             q = q.where(TrafficMetric.counter_id == counter_id)
@@ -71,8 +73,19 @@ async def get_channels(
     period: Period,
     date_from_custom: date | None = None,
     date_to_custom: date | None = None,
+    counter_id: uuid.UUID | None = None,
+    exclude_robots: bool = True,
 ) -> list[ChannelMetric]:
     date_from, date_to, _, _ = resolve_period_or_custom(period, date_from_custom, date_to_custom)
+
+    join_condition = (
+        (TrafficMetric.channel_id == Channel.id)
+        & (TrafficMetric.date >= date_from)
+        & (TrafficMetric.date <= date_to)
+        & (TrafficMetric.exclude_robots == exclude_robots)
+    )
+    if counter_id:
+        join_condition = join_condition & (TrafficMetric.counter_id == counter_id)
 
     q = (
         select(
@@ -83,7 +96,7 @@ async def get_channels(
             func.coalesce(func.sum(TrafficMetric.visits), 0),
             func.coalesce(func.sum(TrafficMetric.users), 0),
         )
-        .outerjoin(TrafficMetric, (TrafficMetric.channel_id == Channel.id) & (TrafficMetric.date >= date_from) & (TrafficMetric.date <= date_to))
+        .outerjoin(TrafficMetric, join_condition)
         .where(Channel.library_id == library_id)
         .group_by(Channel.id, Channel.type, Channel.custom_name)
     )
@@ -109,6 +122,7 @@ async def get_channel_trend(
     period: Period,
     date_from_custom: date | None = None,
     date_to_custom: date | None = None,
+    exclude_robots: bool = True,
 ) -> list[ChannelTrendPoint]:
     date_from, date_to, _, _ = resolve_period_or_custom(period, date_from_custom, date_to_custom)
 
@@ -124,6 +138,7 @@ async def get_channel_trend(
             TrafficMetric.channel_id == channel_id,
             TrafficMetric.date >= date_from,
             TrafficMetric.date <= date_to,
+            TrafficMetric.exclude_robots == exclude_robots,
         )
         .group_by(TrafficMetric.date)
         .order_by(TrafficMetric.date)
@@ -143,6 +158,7 @@ async def get_behavior(
     counter_id: uuid.UUID | None = None,
     date_from_custom: date | None = None,
     date_to_custom: date | None = None,
+    exclude_robots: bool = True,
 ) -> BehaviorData:
     date_from, date_to, prev_from, prev_to = resolve_period_or_custom(period, date_from_custom, date_to_custom)
 
@@ -167,6 +183,7 @@ async def get_behavior(
             TrafficMetric.library_id == library_id,
             TrafficMetric.date >= d_from,
             TrafficMetric.date <= d_to,
+            TrafficMetric.exclude_robots == exclude_robots,
         )
         if counter_id:
             q = q.where(TrafficMetric.counter_id == counter_id)
@@ -193,6 +210,7 @@ async def get_behavior(
                 TrafficMetric.counter_id == counter.id,
                 TrafficMetric.date >= date_from,
                 TrafficMetric.date <= date_to,
+                TrafficMetric.exclude_robots == exclude_robots,
             )
             .group_by(TrafficMetric.date)
             .order_by(TrafficMetric.date)
@@ -221,6 +239,7 @@ async def get_behavior(
             TrafficMetric.counter_id == counter.id,
             TrafficMetric.date >= date_from,
             TrafficMetric.date <= date_to,
+            TrafficMetric.exclude_robots == exclude_robots,
         )
         current_row = (await db.execute(current_q)).one()
 
