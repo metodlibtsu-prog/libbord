@@ -35,7 +35,7 @@ export default function ChannelChart({ data, isLoading, title = 'Цифровы�
     return <p className="text-sm text-dark-text-secondary text-center py-8">Нет данных по каналам</p>
   }
 
-  const filteredData = data.filter((ch) => ch.channel_type !== 'vk')
+  const filteredData = data.filter((ch) => ch.channel_type !== 'vk' && (ch.views > 0 || ch.visits > 0))
 
   const chartData = filteredData.map((ch) => {
     const type = ch.channel_type as ChannelType
