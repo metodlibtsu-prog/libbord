@@ -22,9 +22,10 @@ const CHANNEL_COLORS_LIGHT: Partial<Record<ChannelType, string>> = {
 interface Props {
   data?: ChannelMetric[]
   isLoading: boolean
+  title?: string
 }
 
-export default function ChannelChart({ data, isLoading }: Props) {
+export default function ChannelChart({ data, isLoading, title = 'Цифровые ресурсы' }: Props) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
   const chartTheme = useChartTheme()
   const { isDark } = useTheme()
@@ -61,7 +62,7 @@ export default function ChannelChart({ data, isLoading }: Props) {
       {/* Gradient accent line at top — dark only */}
       {isDark && <div className="absolute top-0 left-0 w-full h-1 bg-gradient-premium" />}
 
-      <h2 className="text-lg font-semibold text-dark-text mb-1">Каналы привлечения</h2>
+      <h2 className="text-lg font-semibold text-dark-text mb-1">{title}</h2>
       <p className="text-sm text-dark-text-secondary mb-5">Просмотры и визиты по источникам трафика</p>
 
       <ResponsiveContainer width="100%" height={chartHeight}>

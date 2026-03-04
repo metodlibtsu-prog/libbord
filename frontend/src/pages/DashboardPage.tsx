@@ -49,6 +49,7 @@ export default function DashboardPage() {
 
   // When a specific counter is selected, hide sections unrelated to Yandex traffic
   const isFiltered = !!counterId
+  const selectedCounterName = counters?.find((c) => c.id === counterId)?.name
 
   if (libLoading) return <LoadingSpinner />
 
@@ -64,7 +65,9 @@ export default function DashboardPage() {
         <Header libraryName={libraryName} counters={counters || []} />
         <main className="max-w-7xl mx-auto px-4 py-8 space-y-10">
 
-          <h2 className="text-2xl font-semibold text-dark-text tracking-tight">Цифровые сервисы библиотеки</h2>
+          <h2 className="text-2xl font-semibold text-dark-text tracking-tight">
+            {selectedCounterName ?? 'Цифровые сервисы библиотеки'}
+          </h2>
 
           {/* Block 1: KPI Overview */}
           <section className="space-y-4">
@@ -74,7 +77,7 @@ export default function DashboardPage() {
 
           {/* Block 2: Channels */}
           <section className="space-y-4">
-            <ChannelChart data={channels.data} isLoading={channels.isLoading} />
+            <ChannelChart data={channels.data} isLoading={channels.isLoading} title={selectedCounterName ?? 'Цифровые ресурсы'} />
             {insights.data && <InsightBanner insights={insights.data} block="channels" />}
           </section>
 
