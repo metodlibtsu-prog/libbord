@@ -172,7 +172,7 @@ async def sync_library_metrics(
                         )
 
                         stmt = stmt.on_conflict_do_update(
-                            index_elements=["library_id", "channel_id", "counter_id", "date", "exclude_robots"],
+                            constraint="uq_traffic_metric",
                             set_={
                                 "views": stmt.excluded.views,
                                 "visits": stmt.excluded.visits,
@@ -195,7 +195,9 @@ async def sync_library_metrics(
                 await db.commit()
 
                 logger.info(
-                    f"Successfully synced counter {counter.id} with {len(metrics_data)} days of data"
+                    f"Successfully synced counter {counter.id}: "
+                    f"{len(metrics_data)} days (filtered), "
+                    f"{len(metrics_data_with_robots)} days (with robots)"
                 )
 
             except Exception as e:
