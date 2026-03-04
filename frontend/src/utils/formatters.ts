@@ -24,6 +24,8 @@ export function formatPlatform(platform: string): string {
     yandex_maps: 'Яндекс.Карты',
     google_maps: 'Google Maps',
     '2gis': '2ГИС',
+    library_site: 'Сайт НБ',
+    guest_book: 'Гостевая книга',
   }
   return map[platform] || platform
 }

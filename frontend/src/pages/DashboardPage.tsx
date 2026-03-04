@@ -105,7 +105,7 @@ export default function DashboardPage() {
           {/* Block 5: Reviews — hidden when a specific counter is selected */}
           {!isFiltered && (
             <section className="space-y-4">
-              <h2 className="text-xl font-semibold text-dark-text tracking-tight">Отзывы с геосервисов</h2>
+              <h2 className="text-xl font-semibold text-dark-text tracking-tight">Отзывы</h2>
               <ReviewsList data={reviews.data} isLoading={reviews.isLoading} />
             </section>
           )}

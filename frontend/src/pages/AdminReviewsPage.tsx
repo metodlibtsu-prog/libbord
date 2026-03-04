@@ -9,6 +9,8 @@ const platforms = [
   { value: 'yandex_maps', label: 'Яндекс.Карты' },
   { value: 'google_maps', label: 'Google Maps' },
   { value: '2gis', label: '2ГИС' },
+  { value: 'library_site', label: 'Сайт НБ' },
+  { value: 'guest_book', label: 'Гостевая книга' },
   { value: 'other', label: 'Другое' },
 ]
 
