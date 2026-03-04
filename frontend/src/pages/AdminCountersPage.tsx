@@ -252,7 +252,12 @@ export default function AdminCountersPage() {
                   </span>
                 </td>
                 <td className="px-5 py-3 text-gray-500 text-xs">
-                  {c.last_sync_at ? new Date(c.last_sync_at).toLocaleString('ru-RU') : '—'}
+                  <div>{c.last_sync_at ? new Date(c.last_sync_at).toLocaleString('ru-RU') : '—'}</div>
+                  {c.sync_error_message && (
+                    <div className="mt-0.5 text-red-500 max-w-xs truncate" title={c.sync_error_message}>
+                      {c.sync_error_message}
+                    </div>
+                  )}
                 </td>
                 <td className="px-5 py-3 text-right">
                   <button

@@ -155,7 +155,7 @@ class YandexMetrikaService:
             "limit": api_limit,
         }
         if exclude_robots:
-            params["filters"] = "!ym:s:isRobot=='Yes'"
+            params["filters"] = "ym:s:isRobot=='No'"
 
         response = await self.client.get(
             f"{self.API_BASE_URL}/stat/v1/data", params=params
