@@ -28,17 +28,20 @@ async def lifespan(app: FastAPI):
     # Startup — ensure all tables exist (idempotent)
     async with engine.begin() as conn:
         # Create custom ENUM types before create_all (they use create_type=False)
-        await conn.execute(text("""
-            DO $$ BEGIN
-                CREATE TYPE sync_status_type AS ENUM ('idle','syncing','success','error');
-            EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-            DO $$ BEGIN
-                CREATE TYPE channel_type AS ENUM ('website','e_library','catalog','telegram','vk','mobile_app','other');
-            EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-            DO $$ BEGIN
-                CREATE TYPE sentiment_type AS ENUM ('positive','neutral','negative');
-            EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-        """))
+        # asyncpg requires one statement per execute call
+        await conn.execute(text(
+            "DO $$ BEGIN CREATE TYPE sync_status_type AS ENUM ('idle','syncing','success','error');"
+            " EXCEPTION WHEN duplicate_object THEN NULL; END $$"
+        ))
+        await conn.execute(text(
+            "DO $$ BEGIN CREATE TYPE channel_type AS ENUM"
+            " ('website','e_library','catalog','telegram','vk','mobile_app','other');"
+            " EXCEPTION WHEN duplicate_object THEN NULL; END $$"
+        ))
+        await conn.execute(text(
+            "DO $$ BEGIN CREATE TYPE sentiment_type AS ENUM ('positive','neutral','negative');"
+            " EXCEPTION WHEN duplicate_object THEN NULL; END $$"
+        ))
         await conn.run_sync(Base.metadata.create_all)
     start_scheduler()
     yield
