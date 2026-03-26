@@ -34,9 +34,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_ALWAYS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://libbord.vercel.app",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=list({*_ALWAYS_ALLOWED_ORIGINS, *settings.cors_origins}),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
