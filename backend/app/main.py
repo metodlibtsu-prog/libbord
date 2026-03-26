@@ -2,6 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+
 from app.auth.router import router as auth_router
 from app.config import settings
 from app.database import engine
@@ -25,6 +27,15 @@ from app.scheduler.setup import start_scheduler, stop_scheduler
 async def lifespan(app: FastAPI):
     # Startup — ensure all tables exist (idempotent)
     async with engine.begin() as conn:
+        # Create custom ENUM types before create_all (they use create_type=False)
+        await conn.execute(
+            text(
+                "DO $$ BEGIN "
+                "CREATE TYPE sync_status_type AS ENUM ('idle','syncing','success','error'); "
+                "EXCEPTION WHEN duplicate_object THEN NULL; "
+                "END $$"
+            )
+        )
         await conn.run_sync(Base.metadata.create_all)
     start_scheduler()
     yield
