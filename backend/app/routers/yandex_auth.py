@@ -197,9 +197,10 @@ async def link_counter(
     db.add(channel)
     await db.flush()  # Get channel.id
 
-    # Create metric counter
+    # Create metric counter linked to the channel
     counter = MetricCounter(
         library_id=data.library_id,
+        channel_id=channel.id,
         name=data.name,
         yandex_counter_id=data.yandex_counter_id,
         is_active=True,

@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
+from typing import Optional
 
 from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ENUM, UUID
@@ -32,5 +33,9 @@ class MetricCounter(Base, IdMixin, TimestampMixin):
     last_sync_at: Mapped[datetime | None] = mapped_column()
     sync_status: Mapped[str] = mapped_column(sync_status_enum, server_default="idle")
     sync_error_message: Mapped[str | None] = mapped_column(Text)
+
+    channel_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("channels.id", ondelete="CASCADE"), nullable=True
+    )
 
     library = relationship("Library", back_populates="metric_counters")

@@ -43,6 +43,11 @@ async def lifespan(app: FastAPI):
             " EXCEPTION WHEN duplicate_object THEN NULL; END $$"
         ))
         await conn.run_sync(Base.metadata.create_all)
+        # Migration: add channel_id FK to metric_counters (idempotent)
+        await conn.execute(text(
+            "ALTER TABLE metric_counters"
+            " ADD COLUMN IF NOT EXISTS channel_id UUID REFERENCES channels(id) ON DELETE CASCADE"
+        ))
     start_scheduler()
     yield
     # Shutdown
