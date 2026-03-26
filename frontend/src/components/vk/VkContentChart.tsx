@@ -18,7 +18,7 @@ export default function VkContentChart({ data }: VkContentChartProps) {
   if (!data || data.length === 0) {
     return (
       <div className="glass-card rounded-xl p-5">
-        <h2 className="text-lg font-semibold text-dark-text mb-4">Активность контента</h2>
+        <h2 className="text-lg font-semibold text-dark-text mb-4">Охват контента по типу</h2>
         <p className="text-sm text-dark-text-secondary text-center py-8">Нет данных</p>
       </div>
     )
@@ -45,9 +45,9 @@ export default function VkContentChart({ data }: VkContentChartProps) {
       {/* Gradient accent line at bottom — dark only */}
       {isDark && <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-premium" />}
 
-      <h2 className="text-lg font-semibold text-dark-text mb-2 relative z-10">Просмотры контента</h2>
+      <h2 className="text-lg font-semibold text-dark-text mb-2 relative z-10">Охват контента по типу</h2>
       <p className="text-sm text-dark-text-secondary mb-4 relative z-10">
-        Сколько раз пользователи просмотрели контент
+        Уникальных пользователей охватил каждый тип контента в день
       </p>
 
       <ResponsiveContainer width="100%" height={300}>
@@ -113,19 +113,19 @@ export default function VkContentChart({ data }: VkContentChartProps) {
 
       <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm relative z-10">
         <div>
-          <p className="text-dark-text-secondary">Просмотры постов/день</p>
+          <p className="text-dark-text-secondary">Охват постов/день</p>
           <p className="font-semibold text-dark-text">{formatNumber(avgPosts)}</p>
         </div>
         <div>
-          <p className="text-dark-text-secondary">Просмотры историй/день</p>
+          <p className="text-dark-text-secondary">Охват историй/день</p>
           <p className="font-semibold text-dark-text">{formatNumber(avgStories)}</p>
         </div>
         <div>
-          <p className="text-dark-text-secondary">Просмотры клипов/день</p>
+          <p className="text-dark-text-secondary">Охват клипов/день</p>
           <p className="font-semibold text-dark-text">{formatNumber(avgClips)}</p>
         </div>
         <div>
-          <p className="text-dark-text-secondary">Просмотры видео/день</p>
+          <p className="text-dark-text-secondary">Охват видео/день</p>
           <p className="font-semibold text-dark-text">{formatNumber(avgVideos)}</p>
         </div>
       </div>
