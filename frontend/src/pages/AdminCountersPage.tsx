@@ -85,7 +85,7 @@ export default function AdminCountersPage() {
     })
   }
 
-  if (isLoading) return <LoadingSpinner />
+  if (isLoading && !!libraryId) return <LoadingSpinner />
 
   return (
     <div className="space-y-6">
