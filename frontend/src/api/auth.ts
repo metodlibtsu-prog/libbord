@@ -1,25 +1,20 @@
-import { createClient } from '@supabase/supabase-js'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  if (error) throw error
-  if (data.session) {
-    localStorage.setItem('access_token', data.session.access_token)
+export async function signIn(email: string, password: string): Promise<{ access_token: string }> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail ?? 'Ошибка авторизации')
   }
+  const data = await res.json()
+  localStorage.setItem('access_token', data.access_token)
   return data
 }
 
-export async function signOut() {
+export function signOut() {
   localStorage.removeItem('access_token')
-  await supabase.auth.signOut()
-}
-
-export async function getSession() {
-  const { data } = await supabase.auth.getSession()
-  return data.session
 }

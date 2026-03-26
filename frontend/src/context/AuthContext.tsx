@@ -1,44 +1,38 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { getSession, supabase } from '@/api/auth'
-import type { Session } from '@supabase/supabase-js'
+import { createContext, useContext, useState, type ReactNode } from 'react'
+
+interface Session {
+  access_token: string
+}
 
 interface AuthContextValue {
   session: Session | null
   loading: boolean
+  setSession: (session: Session | null) => void
 }
 
 const AuthContext = createContext<AuthContextValue>({
   session: null,
-  loading: true,
+  loading: false,
+  setSession: () => {},
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [session, setSessionState] = useState<Session | null>(() => {
+    const token = localStorage.getItem('access_token')
+    return token ? { access_token: token } : null
+  })
 
-  useEffect(() => {
-    getSession().then((s) => {
-      setSession(s)
-      if (s) {
-        localStorage.setItem('access_token', s.access_token)
-      }
-      setLoading(false)
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      if (session) {
-        localStorage.setItem('access_token', session.access_token)
-      } else {
-        localStorage.removeItem('access_token')
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+  function setSession(s: Session | null) {
+    if (s) {
+      localStorage.setItem('access_token', s.access_token)
+    } else {
+      localStorage.removeItem('access_token')
+    }
+    setSessionState(s)
+  }
 
   return (
-    <AuthContext.Provider value={{ session, loading }}>
+    <AuthContext.Provider value={{ session, loading: false, setSession }}>
       {children}
     </AuthContext.Provider>
   )

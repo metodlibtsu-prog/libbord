@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signIn } from '@/api/auth'
+import { useAuth } from '@/context/AuthContext'
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -8,13 +9,15 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { setSession } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      await signIn(email, password)
+      const data = await signIn(email, password)
+      setSession(data)
       navigate('/admin')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Ошибка авторизации'

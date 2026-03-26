@@ -2,8 +2,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.auth.router import router as auth_router
 from app.config import settings
+from app.database import engine
+import app.models  # noqa: F401 — ensures all models are registered with Base.metadata
+from app.models.base import Base
 from app.routers import (
     channels,
     dashboard,
@@ -20,7 +23,9 @@ from app.scheduler.setup import start_scheduler, stop_scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # Startup — ensure all tables exist (idempotent)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     start_scheduler()
     yield
     # Shutdown
@@ -47,6 +52,7 @@ app.add_middleware(
 )
 
 # Routers
+app.include_router(auth_router)
 app.include_router(dashboard.router)
 app.include_router(libraries.router)
 app.include_router(channels.router)

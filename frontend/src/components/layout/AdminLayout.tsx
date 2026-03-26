@@ -12,10 +12,9 @@ const navItems = [
 ]
 
 export default function AdminLayout() {
-  const { session, loading } = useAuth()
+  const { session, loading, setSession } = useAuth()
   const navigate = useNavigate()
 
-  // Wait for auth to load before redirecting
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -29,8 +28,9 @@ export default function AdminLayout() {
     return null
   }
 
-  const handleLogout = async () => {
-    await signOut()
+  const handleLogout = () => {
+    signOut()
+    setSession(null)
     navigate('/admin/login')
   }
 
