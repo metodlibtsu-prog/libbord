@@ -182,10 +182,7 @@ async def link_counter(
     existing_counter = result.scalar_one_or_none()
 
     if existing_counter:
-        raise HTTPException(
-            status_code=400,
-            detail="This counter is already linked to the library",
-        )
+        return existing_counter
 
     # Create channel (non-manual)
     channel = Channel(
@@ -197,10 +194,9 @@ async def link_counter(
     db.add(channel)
     await db.flush()  # Get channel.id
 
-    # Create metric counter linked to the channel
+    # Create metric counter
     counter = MetricCounter(
         library_id=data.library_id,
-        channel_id=channel.id,
         name=data.name,
         yandex_counter_id=data.yandex_counter_id,
         is_active=True,
