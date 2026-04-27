@@ -468,6 +468,7 @@ async def get_vk_stats(
         views=total_views,
         subscribers=latest_subscribers,
         er_pct=round(er_pct, 2),
+        likes=total_likes,
         reposts=total_reposts,
         comments=total_comments,
         reach_delta_pct=reach_delta_pct,

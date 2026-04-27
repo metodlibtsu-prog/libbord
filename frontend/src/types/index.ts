@@ -180,6 +180,7 @@ export interface VkTopPost {
   reach: number
   er: number
   likes: number
+  reposts: number
   comments: number
 }
 

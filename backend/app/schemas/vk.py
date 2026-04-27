@@ -54,6 +54,7 @@ class VkKpi(BaseModel):
     views: int
     subscribers: int
     er_pct: float
+    likes: int = 0
     reposts: int
     comments: int
     reach_delta_pct: float | None
@@ -98,6 +99,7 @@ class VkTopPost(BaseModel):
     reach: int
     er: float
     likes: int
+    reposts: int = 0
     comments: int
 
 

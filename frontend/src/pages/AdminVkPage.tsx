@@ -7,8 +7,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner'
 import InsightBanner from '@/components/dashboard/InsightBanner'
 import VkUploadForm from '@/components/vk/VkUploadForm'
 import VkKpiCards from '@/components/vk/VkKpiCards'
-import VkReachChart from '@/components/vk/VkReachChart'
-import VkContentChart from '@/components/vk/VkContentChart'
+import VkEngagementChart from '@/components/vk/VkEngagementChart'
 import VkTopPostsTable from '@/components/vk/VkTopPostsTable'
 
 const API = import.meta.env.VITE_API_BASE_URL
@@ -268,11 +267,8 @@ export default function AdminVkPage() {
           {stats.insights && stats.insights.length > 0 && (
             <InsightBanner insights={stats.insights} block="vk" />
           )}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <VkReachChart data={stats.reach_trend} />
-            <VkContentChart data={stats.content_trend} />
-          </div>
-          {stats.engagement_trend && stats.engagement_trend.length > 0 && (
+          <VkEngagementChart data={stats.engagement_trend} />
+          {stats.top_posts && stats.top_posts.length > 0 && (
             <VkTopPostsTable posts={stats.top_posts} />
           )}
         </>

@@ -12,14 +12,14 @@ interface Props {
 interface KpiCardProps {
   title: string
   value: number
-  delta: number | null
+  delta?: number | null
   suffix?: string
 }
 
 function KpiCard({ title, value, delta, suffix = '' }: KpiCardProps) {
   const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 })
-  const isPositive = delta !== null && delta > 0
-  const isNegative = delta !== null && delta < 0
+  const isPositive = delta != null && delta > 0
+  const isNegative = delta != null && delta < 0
 
   return (
     <motion.div
@@ -30,9 +30,7 @@ function KpiCard({ title, value, delta, suffix = '' }: KpiCardProps) {
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
       className="glass-card glass-card-hover rounded-xl p-5 relative overflow-hidden group"
     >
-      {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-premium opacity-0 group-hover:opacity-5 transition-opacity duration-300" />
-
       <p className="text-sm text-dark-text-secondary mb-1">{title}</p>
       <p className="text-3xl font-bold text-dark-text mb-2">
         {inView ? (
@@ -42,46 +40,31 @@ function KpiCard({ title, value, delta, suffix = '' }: KpiCardProps) {
         )}
         {suffix}
       </p>
-
-      {delta !== null && (
+      {delta != null && (
         <div className="flex items-center gap-1">
-          {isPositive && (
-            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-green-500">
-              ↑
-            </motion.span>
-          )}
-          {isNegative && (
-            <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-red-500">
-              ↓
-            </motion.span>
-          )}
-          <p
-            className={clsx(
-              'text-sm font-medium',
-              isPositive && 'text-green-500',
-              isNegative && 'text-red-500',
-              !isPositive && !isNegative && 'text-dark-text-secondary',
-            )}
-          >
+          {isPositive && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-green-500">↑</motion.span>}
+          {isNegative && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-red-500">↓</motion.span>}
+          <p className={clsx('text-sm font-medium',
+            isPositive && 'text-green-500',
+            isNegative && 'text-red-500',
+            !isPositive && !isNegative && 'text-dark-text-secondary',
+          )}>
             {formatDelta(delta)} к пред. периоду
           </p>
         </div>
       )}
-
-      {/* Glow effect on positive delta */}
-      {isPositive && (
-        <div className="absolute -bottom-2 -right-2 w-24 h-24 bg-green-500/20 rounded-full blur-2xl" />
-      )}
+      {isPositive && <div className="absolute -bottom-2 -right-2 w-24 h-24 bg-green-500/20 rounded-full blur-2xl" />}
     </motion.div>
   )
 }
 
 export default function VkKpiCards({ kpis }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <KpiCard title="Охват" value={kpis.reach} delta={kpis.reach_delta_pct} />
-      <KpiCard title="Показы" value={kpis.views} delta={kpis.views_delta_pct} />
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
       <KpiCard title="Подписчики" value={kpis.subscribers} delta={kpis.subscribers_delta_pct} />
+      <KpiCard title="Лайки" value={(kpis as any).likes ?? 0} />
+      <KpiCard title="Репосты" value={kpis.reposts} />
+      <KpiCard title="Комментарии" value={kpis.comments} />
     </div>
   )
 }
