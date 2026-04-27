@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import logging
 import uuid
@@ -117,10 +118,12 @@ async def sync_library_metrics(
                 )
 
                 # Fetch metrics both with and without robot filter
+                # 1s pause between the two calls to avoid quota_parallel_req (429)
                 metrics_data = await ym_service.fetch_metrics(
                     counter.yandex_counter_id, effective_date_from, effective_date_to,
                     exclude_robots=True,
                 )
+                await asyncio.sleep(1.0)
                 metrics_data_with_robots = await ym_service.fetch_metrics(
                     counter.yandex_counter_id, effective_date_from, effective_date_to,
                     exclude_robots=False,
@@ -202,10 +205,12 @@ async def sync_library_metrics(
 
             except Exception as e:
                 logger.error(f"Error syncing counter {counter.id}: {e}", exc_info=True)
-
-                # Set error status
                 counter.sync_status = SyncStatus.ERROR
-                counter.sync_error_message = str(e)[:500]  # Truncate to 500 chars
+                counter.sync_error_message = str(e)[:500]
                 await db.commit()
+
+            finally:
+                # Pause between counters to respect Yandex API rate limits
+                await asyncio.sleep(2.0)
 
     logger.info(f"Finished sync for library {library_id}")

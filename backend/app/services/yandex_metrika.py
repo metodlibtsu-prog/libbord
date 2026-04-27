@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import httpx
 from typing import Any
@@ -157,9 +158,21 @@ class YandexMetrikaService:
         if exclude_robots:
             params["filters"] = "ym:s:isRobot=='No'"
 
-        response = await self.client.get(
-            f"{self.API_BASE_URL}/stat/v1/data", params=params
-        )
+        # Retry with exponential backoff on 429 (quota_parallel_req)
+        max_retries = 5
+        delay = 2.0
+        response = None
+        for attempt in range(max_retries):
+            response = await self.client.get(
+                f"{self.API_BASE_URL}/stat/v1/data", params=params
+            )
+            if response.status_code == 429:
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(delay)
+                    delay *= 2
+                    continue
+            break
+
         if response.status_code != 200:
             error_body = response.text
             raise Exception(
