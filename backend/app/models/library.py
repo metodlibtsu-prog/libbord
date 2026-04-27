@@ -17,3 +17,4 @@ class Library(Base, IdMixin, TimestampMixin):
     reviews = relationship("Review", back_populates="library", cascade="all, delete-orphan")
     vk_uploads = relationship("VkUpload", back_populates="library", cascade="all, delete-orphan")
     vk_metrics = relationship("VkMetric", back_populates="library", cascade="all, delete-orphan")
+    vk_config = relationship("VkConfig", back_populates="library", uselist=False, cascade="all, delete-orphan")

@@ -6,8 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session
 from app.models.library import Library
+from app.models.vk_config import VkConfig
 from app.models.yandex_token import YandexToken
 from app.services.sync_service import sync_library_metrics
+from app.services.vk_sync_service import sync_vk
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +48,18 @@ async def daily_sync_job():
                         f"Failed to sync library {library.id}: {e}", exc_info=True
                     )
                     # Продолжаем синхронизацию других библиотек
+
+            logger.info("Yandex sync completed")
+
+            # VK sync for all configured libraries
+            vk_result = await db.execute(select(Library).join(VkConfig, Library.id == VkConfig.library_id))
+            vk_libraries = vk_result.scalars().all()
+            for library in vk_libraries:
+                try:
+                    logger.info(f"VK sync for library {library.id}")
+                    await sync_vk(db, library.id)
+                except Exception as e:
+                    logger.error(f"VK sync failed for {library.id}: {e}", exc_info=True)
 
             logger.info("Daily sync job completed")
 

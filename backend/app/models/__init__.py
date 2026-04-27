@@ -7,6 +7,7 @@ from app.models.review import Review
 from app.models.yandex_token import YandexToken
 from app.models.vk_upload import VkUpload
 from app.models.vk_metric import VkMetric
+from app.models.vk_config import VkConfig
 
 __all__ = [
     "Library",
@@ -18,4 +19,5 @@ __all__ = [
     "YandexToken",
     "VkUpload",
     "VkMetric",
+    "VkConfig",
 ]

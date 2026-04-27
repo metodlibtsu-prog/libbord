@@ -16,10 +16,13 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
+import asyncio
+
+from app.database import async_session, get_db
 from app.dependencies import get_current_admin
 from app.models.channel import Channel
 from app.models.engagement_metric import EngagementMetric
+from app.models.vk_config import VkConfig
 from app.models.vk_metric import VkMetric
 from app.models.vk_upload import VkUpload
 from app.schemas.vk import (
@@ -34,10 +37,128 @@ from app.schemas.vk import (
     VkUploadSummary,
 )
 from app.services.insights_engine import generate_vk_insights
+from app.services.vk_api_service import VkApiService
 from app.services.vk_csv_service import extract_period_from_csv, parse_vk_csv, validate_csv_format
+from app.services.vk_sync_service import sync_vk
 
 router = APIRouter(prefix="/api/vk", tags=["vk"])
 logger = logging.getLogger(__name__)
+
+
+# ── VK API config & sync ─────────────────────────────────────────────────────
+
+@router.get("/config")
+async def get_vk_config(
+    library_id: uuid.UUID = Query(...),
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(get_current_admin),
+):
+    result = await db.execute(select(VkConfig).where(VkConfig.library_id == library_id))
+    config = result.scalar_one_or_none()
+    if not config:
+        return {"configured": False}
+    return {
+        "configured": True,
+        "community_id": config.community_id,
+        "community_name": config.community_name,
+        "sync_status": config.sync_status,
+        "sync_error": config.sync_error,
+        "last_sync_at": config.last_sync_at,
+    }
+
+
+@router.post("/config")
+async def save_vk_config(
+    library_id: uuid.UUID = Query(...),
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(get_current_admin),
+    body: dict = Depends(lambda: None),
+):
+    from fastapi import Body
+    raise HTTPException(status_code=405, detail="Use POST with JSON body")
+
+
+from pydantic import BaseModel as _Base
+
+class VkConfigIn(_Base):
+    community_token: str
+    community_id: str | None = None
+
+
+@router.post("/config/save")
+async def save_vk_config_v2(
+    library_id: uuid.UUID = Query(...),
+    payload: VkConfigIn = ...,
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(get_current_admin),
+):
+    result = await db.execute(select(VkConfig).where(VkConfig.library_id == library_id))
+    config = result.scalar_one_or_none()
+
+    if not config:
+        config = VkConfig(library_id=library_id)
+        db.add(config)
+
+    config.community_token = payload.community_token
+    if payload.community_id:
+        config.community_id = payload.community_id
+    config.sync_status = "idle"
+    config.sync_error = None
+
+    # Auto-detect community info
+    try:
+        async with VkApiService(payload.community_token) as vk:
+            info = await vk.get_group_info()
+            config.community_id = info["id"]
+            config.community_name = info["name"]
+    except Exception as e:
+        logger.warning(f"Could not auto-detect VK group: {e}")
+
+    await db.commit()
+    return {
+        "ok": True,
+        "community_id": config.community_id,
+        "community_name": config.community_name,
+    }
+
+
+class VkSyncIn(_Base):
+    date_from: date | None = None
+    date_to: date | None = None
+
+
+async def _run_vk_sync_background(library_id: uuid.UUID, date_from, date_to):
+    async with async_session() as db:
+        try:
+            await sync_vk(db, library_id, date_from, date_to)
+        except Exception as e:
+            logger.error(f"Background VK sync failed: {e}")
+
+
+@router.post("/sync")
+async def trigger_vk_sync(
+    library_id: uuid.UUID = Query(...),
+    payload: VkSyncIn = VkSyncIn(),
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(get_current_admin),
+):
+    result = await db.execute(select(VkConfig).where(VkConfig.library_id == library_id))
+    config = result.scalar_one_or_none()
+    if not config:
+        raise HTTPException(status_code=404, detail="VK not configured")
+
+    date_from = payload.date_from
+    date_to = payload.date_to
+
+    days = (date_to - date_from).days + 1 if date_from and date_to else 7
+    if days > 30:
+        asyncio.create_task(
+            _run_vk_sync_background(library_id, date_from, date_to)
+        )
+        return {"status": "started_background", "days": days}
+
+    result_data = await sync_vk(db, library_id, date_from, date_to)
+    return {"status": "done", **result_data}
 
 
 @router.post("/upload", response_model=VkUploadSummary, status_code=201)
