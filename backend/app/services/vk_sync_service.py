@@ -64,33 +64,32 @@ async def sync_vk(
             if not channel:
                 raise Exception("No VK channel found. Create it in Channels first.")
 
-            # Fetch daily stats and wall posts in parallel (sequentially to respect rate limits)
-            daily_stats = await vk.get_daily_stats(group_id, effective_from, effective_to)
+            # stats.get requires a user token (not community token) — skip gracefully
+            # Use wall.get for engagement data instead
             wall_data = await vk.get_wall_posts(group_id, effective_from, effective_to)
 
             # Get current subscribers count
             members_count = await vk.get_members_count(group_id)
 
-            # Upsert vk_metrics (reach/visitors/subscribers)
+            # Upsert vk_metrics stub rows (one per day) so the stats endpoint has data
             days_synced = 0
-            for day in daily_stats:
-                date_obj = datetime.date.fromisoformat(day["date"])
+            delta = (effective_to - effective_from).days + 1
+            all_dates = [(effective_from + datetime.timedelta(days=i)).isoformat() for i in range(delta)]
+
+            for date_str in all_dates:
+                date_obj = datetime.date.fromisoformat(date_str)
                 stmt = insert(VkMetric).values(
                     library_id=library_id,
                     channel_id=channel.id,
                     date=date_obj,
-                    visitors=day["visitors"],
-                    views=day["views"],
-                    subscribed=day["subscribed"],
-                    unsubscribed=day["unsubscribed"],
+                    visitors=0,
+                    views=0,
+                    subscribed=0,
+                    unsubscribed=0,
                     total_subscribers=members_count,
                 ).on_conflict_do_update(
-                    constraint="vk_metrics_library_id_channel_id_date_key",
+                    index_elements=["library_id", "channel_id", "date"],
                     set_={
-                        "visitors": stmt.excluded.visitors,
-                        "views": stmt.excluded.views,
-                        "subscribed": stmt.excluded.subscribed,
-                        "unsubscribed": stmt.excluded.unsubscribed,
                         "total_subscribers": members_count,
                     }
                 )

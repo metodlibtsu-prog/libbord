@@ -405,7 +405,12 @@ async def get_vk_stats(
     eng_metrics = eng_result.scalars().all()
 
     if not vk_metrics and not eng_metrics:
-        raise HTTPException(status_code=404, detail="No VK data found for this period")
+        return VkStatsResponse(
+            kpis=VkKpi(reach=0, views=0, subscribers=0, er_pct=0.0, reposts=0, comments=0),
+            reach_trend=[], engagement_trend=[], content_trend=[], top_posts=[],
+            period_info=VkPeriodInfo(start=str(date_from), end=str(date_to), upload_date=None),
+            insights=[],
+        )
 
     # Calculate KPIs for current period
     total_reach = sum(m.visitors for m in vk_metrics)
