@@ -166,7 +166,8 @@ async def vk_stats(
 
     if not vk_metrics and not eng_metrics:
         return VkStatsResponse(
-            kpis=VkKpi(reach=0, views=0, subscribers=0, er_pct=0.0, reposts=0, comments=0),
+            kpis=VkKpi(reach=0, views=0, subscribers=0, er_pct=0.0, reposts=0, comments=0,
+                       reach_delta_pct=None, views_delta_pct=None, subscribers_delta_pct=None, er_delta_pct=None),
             reach_trend=[], engagement_trend=[], content_trend=[], top_posts=[],
             period_info=VkPeriodInfo(start=str(resolved_from), end=str(resolved_to), upload_date=None),
             insights=[],
