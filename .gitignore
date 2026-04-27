@@ -31,3 +31,11 @@ Thumbs.db
 # Temporary
 *.log
 *.tmp
+
+# Analysis/debug artifacts
+backend/*.txt
+backend/parse_vk_csv.py
+backend/vk_mapping_generated.py
+vk_data_parsed.json
+vk_metrics_analysis.txt
+vk_parse_output.txt
