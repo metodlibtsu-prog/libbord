@@ -18,6 +18,7 @@ class VkConfig(Base, IdMixin, TimestampMixin):
         nullable=False, unique=True,
     )
     community_token: Mapped[str] = mapped_column(Text, nullable=False)
+    service_token: Mapped[str | None] = mapped_column(Text)
     community_id: Mapped[str | None] = mapped_column(String(32))
     community_name: Mapped[str | None] = mapped_column(String(255))
     last_sync_at: Mapped[datetime | None] = mapped_column()

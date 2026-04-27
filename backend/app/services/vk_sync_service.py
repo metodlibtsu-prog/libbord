@@ -39,7 +39,7 @@ async def sync_vk(
     await db.commit()
 
     try:
-        async with VkApiService(config.community_token) as vk:
+        async with VkApiService(config.community_token, service_token=config.service_token) as vk:
             # Auto-detect group ID if not saved
             if not config.community_id:
                 info = await vk.get_group_info()

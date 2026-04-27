@@ -23,11 +23,11 @@ async function getVkConfig(libraryId: string) {
   return r.json()
 }
 
-async function saveVkConfig(libraryId: string, token: string) {
+async function saveVkConfig(libraryId: string, token: string, serviceToken?: string) {
   const r = await fetch(`${API}/vk/config/save?library_id=${libraryId}`, {
     method: 'POST',
     headers: { ...authHeader(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ community_token: token }),
+    body: JSON.stringify({ community_token: token, service_token: serviceToken || null }),
   })
   if (!r.ok) {
     const e = await r.json().catch(() => ({}))
@@ -52,6 +52,7 @@ async function triggerVkSync(libraryId: string, dateFrom?: string, dateTo?: stri
 function VkApiSetup({ libraryId }: { libraryId: string }) {
   const qc = useQueryClient()
   const [token, setToken] = useState('')
+  const [serviceToken, setServiceToken] = useState('')
   const [saving, setSaving] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncPeriod, setSyncPeriod] = useState<'7' | '30' | '365'>('7')
@@ -68,9 +69,10 @@ function VkApiSetup({ libraryId }: { libraryId: string }) {
     setSaving(true)
     setMsg(null)
     try {
-      const res = await saveVkConfig(libraryId, token.trim())
+      const res = await saveVkConfig(libraryId, token.trim(), serviceToken.trim() || undefined)
       setMsg({ type: 'ok', text: `Подключено: ${res.community_name || res.community_id}` })
       setToken('')
+      setServiceToken('')
       qc.invalidateQueries({ queryKey: ['vk-config', libraryId] })
     } catch (e: any) {
       setMsg({ type: 'err', text: e.message })
@@ -123,30 +125,52 @@ function VkApiSetup({ libraryId }: { libraryId: string }) {
         </div>
       )}
 
-      {/* Token input */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {config?.configured ? 'Обновить токен сообщества' : 'Токен сообщества ВКонтакте'}
-        </label>
-        <div className="flex gap-2">
+      {/* Token inputs */}
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {config?.configured ? 'Обновить токен сообщества' : 'Токен сообщества ВКонтакте'}
+          </label>
           <input
             type="password"
             value={token}
             onChange={(e) => setToken(e.target.value)}
             placeholder="vk1.a.xxxxx..."
-            className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
-          <button
-            onClick={handleSave}
-            disabled={saving || !token.trim()}
-            className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {saving ? 'Сохраняю...' : config?.configured ? 'Обновить' : 'Подключить'}
-          </button>
+          <p className="mt-1 text-xs text-gray-500">
+            Настройки сообщества → Работа с API → Ключи доступа → Создать ключ
+          </p>
         </div>
-        <p className="mt-1 text-xs text-gray-500">
-          Настройки сообщества → Работа с API → Ключи доступа → Создать ключ
-        </p>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Сервисный ключ VK-приложения
+            {config?.has_service_token && <span className="ml-2 text-green-600 text-xs">✓ сохранён</span>}
+          </label>
+          <input
+            type="password"
+            value={serviceToken}
+            onChange={(e) => setServiceToken(e.target.value)}
+            placeholder="вставьте сервисный ключ..."
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Нужен для чтения постов со стены.{' '}
+            <a href="https://vk.com/apps?act=manage" target="_blank" rel="noreferrer" className="underline">
+              vk.com/apps
+            </a>{' '}
+            → ваше приложение → Настройки → Сервисный ключ
+          </p>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving || !token.trim()}
+          className="px-4 py-2 rounded-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+        >
+          {saving ? 'Сохраняю...' : config?.configured ? 'Обновить' : 'Подключить'}
+        </button>
       </div>
 
       {/* Sync controls */}

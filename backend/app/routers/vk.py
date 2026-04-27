@@ -64,6 +64,7 @@ async def get_vk_config(
         "sync_status": config.sync_status,
         "sync_error": config.sync_error,
         "last_sync_at": config.last_sync_at,
+        "has_service_token": bool(config.service_token),
     }
 
 
@@ -82,6 +83,7 @@ from pydantic import BaseModel as _Base
 
 class VkConfigIn(_Base):
     community_token: str
+    service_token: str | None = None
     community_id: str | None = None
 
 
@@ -100,6 +102,8 @@ async def save_vk_config_v2(
         db.add(config)
 
     config.community_token = payload.community_token
+    if payload.service_token:
+        config.service_token = payload.service_token
     if payload.community_id:
         config.community_id = payload.community_id
     config.sync_status = "idle"
@@ -107,7 +111,7 @@ async def save_vk_config_v2(
 
     # Auto-detect community info
     try:
-        async with VkApiService(payload.community_token) as vk:
+        async with VkApiService(payload.community_token, service_token=payload.service_token) as vk:
             info = await vk.get_group_info()
             config.community_id = info["id"]
             config.community_name = info["name"]

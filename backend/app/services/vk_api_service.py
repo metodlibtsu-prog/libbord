@@ -14,8 +14,9 @@ BASE_URL = "https://api.vk.com/method"
 
 
 class VkApiService:
-    def __init__(self, token: str):
+    def __init__(self, token: str, service_token: str | None = None):
         self.token = token
+        self.service_token = service_token
         self.client = httpx.AsyncClient(timeout=30.0)
 
     async def close(self):
@@ -29,6 +30,16 @@ class VkApiService:
 
     async def _call(self, method: str, **params) -> Any:
         params.update(access_token=self.token, v=API_VERSION)
+        resp = await self.client.get(f"{BASE_URL}/{method}", params=params)
+        resp.raise_for_status()
+        data = resp.json()
+        if "error" in data:
+            raise Exception(f"VK API error {data['error']['error_code']}: {data['error']['error_msg']}")
+        return data["response"]
+
+    async def _public_call(self, method: str, **params) -> Any:
+        """Call VK API without auth token — for public read methods (wall.get on public groups)."""
+        params.update(v=API_VERSION)
         resp = await self.client.get(f"{BASE_URL}/{method}", params=params)
         resp.raise_for_status()
         data = resp.json()
@@ -109,14 +120,25 @@ class VkApiService:
 
         while True:
             await asyncio.sleep(0.4)  # VK rate limit: ~3 req/s
-            result = await self._call(
-                "wall.get",
-                owner_id=owner_id,
-                count=count,
-                offset=offset,
-                filter="owner",
-                extended=0,
-            )
+            try:
+                # Service token can call wall.get; community token cannot (Error 27)
+                token = self.service_token or self.token
+                params_wall: dict = dict(access_token=token, v=API_VERSION,
+                                         owner_id=owner_id, count=count, offset=offset)
+                resp = await self.client.get(f"{BASE_URL}/wall.get", params=params_wall)
+                resp.raise_for_status()
+                data = resp.json()
+                if "error" in data:
+                    code = data["error"]["error_code"]
+                    if code in (15, 27):
+                        logger.warning(f"wall.get unavailable ({code}): no service token or access denied")
+                        return []
+                    raise Exception(f"VK API error {code}: {data['error']['error_msg']}")
+                result = data["response"]
+            except Exception as exc:
+                if "error_code" not in str(exc):
+                    raise
+                return []
             items = result.get("items", [])
             if not items:
                 break
