@@ -1,0 +1,55 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: libbord-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: libbord
+      POSTGRES_USER: libbord
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - libbord_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U libbord"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - libbord_internal
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.prod
+    container_name: libbord-backend
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      DATABASE_URL: postgresql+asyncpg://libbord:${POSTGRES_PASSWORD}@postgres:5432/libbord
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - libbord_internal
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_BASE_URL: http://${SERVER_IP}:8100/api
+    container_name: libbord-frontend
+    restart: unless-stopped
+    ports:
+      - "8100:80"
+    depends_on:
+      - backend
+    networks:
+      - libbord_internal
+
+volumes:
+  libbord_pgdata:
+
+networks:
+  libbord_internal:
+    driver: bridge
