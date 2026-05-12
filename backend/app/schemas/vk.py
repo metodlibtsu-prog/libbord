@@ -64,11 +64,12 @@ class VkKpi(BaseModel):
 
 
 class VkReachPoint(BaseModel):
-    """Reach trend data point"""
+    """Subscriber trend data point"""
 
     date: str
     reach: int
     views: int
+    subscribers: int = 0
 
 
 class VkEngagementPoint(BaseModel):

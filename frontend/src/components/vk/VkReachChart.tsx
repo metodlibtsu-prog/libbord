@@ -10,13 +10,13 @@ import {
 } from 'recharts'
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
-import type { VkReachPoint } from '@/types'
+import type { VkEngagementPoint } from '@/types'
 import { formatNumber } from '@/utils/formatters'
 import { useChartTheme } from '@/hooks/useChartTheme'
 import { useTheme } from '@/context/ThemeContext'
 
 interface Props {
-  data: VkReachPoint[]
+  data: VkEngagementPoint[]
 }
 
 export default function VkReachChart({ data }: Props) {
@@ -27,14 +27,19 @@ export default function VkReachChart({ data }: Props) {
   if (!data || data.length === 0) {
     return (
       <div className="glass-card rounded-xl p-5">
-        <h2 className="text-lg font-semibold text-dark-text mb-4">Охват и показы</h2>
+        <h2 className="text-lg font-semibold text-dark-text mb-4">Вовлечённость</h2>
         <p className="text-sm text-dark-text-secondary text-center py-8">Нет данных</p>
       </div>
     )
   }
 
-  const reachColor = isDark ? '#00D4FF' : '#2563EB'
-  const viewsColor = isDark ? '#10B981' : '#16A34A'
+  const likesColor   = isDark ? '#00D4FF' : '#3146E6'
+  const repostsColor = isDark ? '#0EA5A5' : '#0EA5A5'
+  const commentsColor = isDark ? '#F59E0B' : '#D97706'
+
+  const avgLikes    = Math.round(data.reduce((s, d) => s + d.likes, 0) / data.length)
+  const avgReposts  = Math.round(data.reduce((s, d) => s + d.reposts, 0) / data.length)
+  const avgComments = Math.round(data.reduce((s, d) => s + d.comments, 0) / data.length)
 
   return (
     <motion.div
@@ -43,35 +48,11 @@ export default function VkReachChart({ data }: Props) {
       animate={inView ? { opacity: 1 } : {}}
       className="glass-card rounded-xl p-5 relative overflow-hidden"
     >
-      {/* Corner gradient accent — dark only */}
-      {isDark && (
-        <div className="absolute top-0 left-0 w-24 h-24 bg-gradient-premium opacity-10 blur-2xl" />
-      )}
-
-      <h2 className="text-lg font-semibold text-dark-text mb-2 relative z-10">Охват и показы</h2>
-      <p className="text-sm text-dark-text-secondary mb-4 relative z-10">Сколько людей увидели контент</p>
+      <h2 className="text-lg font-semibold text-dark-text mb-2 relative z-10">Вовлечённость</h2>
+      <p className="text-sm text-dark-text-secondary mb-4 relative z-10">Лайки, репосты и комментарии по дням</p>
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-          {isDark && (
-            <defs>
-              <filter id="glow-reach" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              <filter id="glow-views" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-          )}
-
           <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
           <XAxis
             dataKey="date"
@@ -79,8 +60,8 @@ export default function VkReachChart({ data }: Props) {
             stroke={chartTheme.textColor}
             tickLine={false}
             tickFormatter={(value) => {
-              const date = new Date(value)
-              return `${date.getDate()}.${date.getMonth() + 1}`
+              const d = new Date(value)
+              return `${d.getDate()}.${d.getMonth() + 1}`
             }}
           />
           <YAxis
@@ -100,50 +81,29 @@ export default function VkReachChart({ data }: Props) {
               boxShadow: isDark ? 'none' : '0 6px 20px rgba(0,0,0,0.08)',
             }}
             labelFormatter={(value) => {
-              const date = new Date(value)
-              return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`
+              const d = new Date(value)
+              return `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`
             }}
           />
           <Legend wrapperStyle={{ color: chartTheme.legendColor }} />
-          <Line
-            type="monotone"
-            dataKey="reach"
-            stroke={reachColor}
-            name="Охват"
-            strokeWidth={isDark ? 3 : 2}
-            filter={isDark ? 'url(#glow-reach)' : undefined}
-            isAnimationActive={inView}
-            animationDuration={1500}
-            animationEasing="ease-out"
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="views"
-            stroke={viewsColor}
-            name="Показы"
-            strokeWidth={isDark ? 3 : 2}
-            filter={isDark ? 'url(#glow-views)' : undefined}
-            isAnimationActive={inView}
-            animationDuration={1500}
-            animationEasing="ease-out"
-            dot={false}
-          />
+          <Line type="monotone" dataKey="likes"    stroke={likesColor}    name="Лайки"       strokeWidth={2} dot={false} isAnimationActive={inView} animationDuration={1500} animationEasing="ease-out" />
+          <Line type="monotone" dataKey="reposts"  stroke={repostsColor}  name="Репосты"     strokeWidth={2} dot={false} isAnimationActive={inView} animationDuration={1500} animationEasing="ease-out" />
+          <Line type="monotone" dataKey="comments" stroke={commentsColor} name="Комментарии" strokeWidth={2} dot={false} isAnimationActive={inView} animationDuration={1500} animationEasing="ease-out" />
         </LineChart>
       </ResponsiveContainer>
 
-      <div className="mt-4 grid grid-cols-2 gap-4 text-sm relative z-10">
+      <div className="mt-4 grid grid-cols-3 gap-4 text-sm relative z-10">
         <div>
-          <p className="text-dark-text-secondary">Средний охват на день</p>
-          <p className="font-semibold text-dark-text">
-            {formatNumber(Math.round(data.reduce((sum, d) => sum + d.reach, 0) / data.length))}
-          </p>
+          <p className="text-dark-text-secondary">Лайков/день</p>
+          <p className="font-semibold text-dark-text">{formatNumber(avgLikes)}</p>
         </div>
         <div>
-          <p className="text-dark-text-secondary">Средние показы на день</p>
-          <p className="font-semibold text-dark-text">
-            {formatNumber(Math.round(data.reduce((sum, d) => sum + d.views, 0) / data.length))}
-          </p>
+          <p className="text-dark-text-secondary">Репостов/день</p>
+          <p className="font-semibold text-dark-text">{formatNumber(avgReposts)}</p>
+        </div>
+        <div>
+          <p className="text-dark-text-secondary">Комментариев/день</p>
+          <p className="font-semibold text-dark-text">{formatNumber(avgComments)}</p>
         </div>
       </div>
     </motion.div>

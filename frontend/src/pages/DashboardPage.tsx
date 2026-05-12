@@ -88,10 +88,10 @@ export default function DashboardPage() {
               <div className="lb-h2">ВКонтакте</div>
             </div>
             <VkKpiCards kpis={vkStats.data.kpis} />
-            {vkStats.data.reach_trend && vkStats.data.reach_trend.length > 0 && (
+            {vkStats.data.engagement_trend && vkStats.data.engagement_trend.length > 0 && (
               <div className="lb-grid-2" style={{ marginTop: 18 }}>
-                <VkReachChart data={vkStats.data.reach_trend} />
-                <VkContentChart data={vkStats.data.content_trend} />
+                <VkReachChart data={vkStats.data.engagement_trend} />
+                <VkContentChart data={vkStats.data.reach_trend} />
               </div>
             )}
           </div>

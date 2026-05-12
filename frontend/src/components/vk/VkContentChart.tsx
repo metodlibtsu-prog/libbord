@@ -1,5 +1,13 @@
-import { VkContentPoint } from '@/types'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { VkReachPoint } from '@/types'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
 import { formatNumber } from '@/utils/formatters'
@@ -7,7 +15,7 @@ import { useChartTheme } from '@/hooks/useChartTheme'
 import { useTheme } from '@/context/ThemeContext'
 
 interface VkContentChartProps {
-  data: VkContentPoint[]
+  data: VkReachPoint[]
 }
 
 export default function VkContentChart({ data }: VkContentChartProps) {
@@ -15,25 +23,24 @@ export default function VkContentChart({ data }: VkContentChartProps) {
   const chartTheme = useChartTheme()
   const { isDark } = useTheme()
 
-  if (!data || data.length === 0) {
+  const validData = data?.filter(d => d.subscribers > 0) ?? []
+
+  if (validData.length === 0) {
     return (
       <div className="glass-card rounded-xl p-5">
-        <h2 className="text-lg font-semibold text-dark-text mb-4">Охват контента по типу</h2>
+        <h2 className="text-lg font-semibold text-dark-text mb-4">Динамика подписчиков</h2>
         <p className="text-sm text-dark-text-secondary text-center py-8">Нет данных</p>
       </div>
     )
   }
 
-  // Calculate averages
-  const avgPosts   = Math.round(data.reduce((sum, d) => sum + d.posts,   0) / data.length)
-  const avgStories = Math.round(data.reduce((sum, d) => sum + d.stories, 0) / data.length)
-  const avgClips   = Math.round(data.reduce((sum, d) => sum + d.clips,   0) / data.length)
-  const avgVideos  = Math.round(data.reduce((sum, d) => sum + d.videos,  0) / data.length)
+  const minSubs = Math.min(...validData.map(d => d.subscribers))
+  const maxSubs = Math.max(...validData.map(d => d.subscribers))
+  const growth  = maxSubs - minSubs
+  const latestSubs = validData[validData.length - 1]?.subscribers ?? 0
 
-  // Theme-aware bar colors
-  const colors = isDark
-    ? { posts: '#00D4FF', stories: '#7B2FBE', clips: '#FF006E', videos: '#F59E0B' }
-    : { posts: '#2563EB', stories: '#7C3AED', clips: '#DC2626',  videos: '#D97706' }
+  const fillColor  = isDark ? '#00D4FF' : '#3146E6'
+  const strokeColor = isDark ? '#00D4FF' : '#3146E6'
 
   return (
     <motion.div
@@ -42,35 +49,17 @@ export default function VkContentChart({ data }: VkContentChartProps) {
       animate={inView ? { opacity: 1 } : {}}
       className="glass-card rounded-xl p-5 relative overflow-hidden"
     >
-      {/* Gradient accent line at bottom — dark only */}
-      {isDark && <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-premium" />}
-
-      <h2 className="text-lg font-semibold text-dark-text mb-2 relative z-10">Охват контента по типу</h2>
-      <p className="text-sm text-dark-text-secondary mb-4 relative z-10">
-        Уникальных пользователей охватил каждый тип контента в день
-      </p>
+      <h2 className="text-lg font-semibold text-dark-text mb-2 relative z-10">Динамика подписчиков</h2>
+      <p className="text-sm text-dark-text-secondary mb-4 relative z-10">Общее число подписчиков по дням</p>
 
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }} barCategoryGap="10%">
+        <AreaChart data={validData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
           <defs>
-            <linearGradient id="gradient-posts" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={colors.posts} stopOpacity={0.85} />
-              <stop offset="100%" stopColor={colors.posts} stopOpacity={1} />
-            </linearGradient>
-            <linearGradient id="gradient-stories" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={colors.stories} stopOpacity={0.85} />
-              <stop offset="100%" stopColor={colors.stories} stopOpacity={1} />
-            </linearGradient>
-            <linearGradient id="gradient-clips" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={colors.clips} stopOpacity={0.85} />
-              <stop offset="100%" stopColor={colors.clips} stopOpacity={1} />
-            </linearGradient>
-            <linearGradient id="gradient-videos" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={colors.videos} stopOpacity={0.85} />
-              <stop offset="100%" stopColor={colors.videos} stopOpacity={1} />
+            <linearGradient id="subs-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor={fillColor} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={fillColor} stopOpacity={0} />
             </linearGradient>
           </defs>
-
           <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridColor} horizontal={false} />
           <XAxis
             dataKey="date"
@@ -78,8 +67,8 @@ export default function VkContentChart({ data }: VkContentChartProps) {
             stroke={chartTheme.textColor}
             tickLine={false}
             tickFormatter={(value) => {
-              const date = new Date(value)
-              return `${date.getDate()}.${date.getMonth() + 1}`
+              const d = new Date(value)
+              return `${d.getDate()}.${d.getMonth() + 1}`
             }}
           />
           <YAxis
@@ -87,9 +76,10 @@ export default function VkContentChart({ data }: VkContentChartProps) {
             stroke={chartTheme.textColor}
             tickLine={false}
             tickFormatter={(v) => formatNumber(v)}
+            domain={['auto', 'auto']}
           />
           <Tooltip
-            formatter={(value: number) => formatNumber(value)}
+            formatter={(value: number) => [formatNumber(value), 'Подписчики']}
             contentStyle={{
               backgroundColor: chartTheme.tooltipBg,
               border: `1px solid ${chartTheme.tooltipBorder}`,
@@ -99,34 +89,39 @@ export default function VkContentChart({ data }: VkContentChartProps) {
               boxShadow: isDark ? 'none' : '0 6px 20px rgba(0,0,0,0.08)',
             }}
             labelFormatter={(value) => {
-              const date = new Date(value as string)
-              return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`
+              const d = new Date(value)
+              return `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`
             }}
           />
-          <Legend wrapperStyle={{ color: chartTheme.legendColor }} />
-          <Bar dataKey="posts"   stackId="content" fill="url(#gradient-posts)"   name="Посты"   radius={[0, 0, 0, 0]} isAnimationActive={inView} animationDuration={1000} animationEasing="ease-out" />
-          <Bar dataKey="stories" stackId="content" fill="url(#gradient-stories)" name="Истории" radius={[0, 0, 0, 0]} isAnimationActive={inView} animationDuration={1000} animationEasing="ease-out" />
-          <Bar dataKey="clips"   stackId="content" fill="url(#gradient-clips)"   name="Клипы"   radius={[0, 0, 0, 0]} isAnimationActive={inView} animationDuration={1000} animationEasing="ease-out" />
-          <Bar dataKey="videos"  stackId="content" fill="url(#gradient-videos)"  name="Видео"   radius={[8, 8, 0, 0]} isAnimationActive={inView} animationDuration={1000} animationEasing="ease-out" />
-        </BarChart>
+          <Area
+            type="monotone"
+            dataKey="subscribers"
+            stroke={strokeColor}
+            strokeWidth={2}
+            fill="url(#subs-grad)"
+            name="Подписчики"
+            dot={false}
+            isAnimationActive={inView}
+            animationDuration={1500}
+            animationEasing="ease-out"
+          />
+        </AreaChart>
       </ResponsiveContainer>
 
-      <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm relative z-10">
+      <div className="mt-4 grid grid-cols-3 gap-4 text-sm relative z-10">
         <div>
-          <p className="text-dark-text-secondary">Охват постов/день</p>
-          <p className="font-semibold text-dark-text">{formatNumber(avgPosts)}</p>
+          <p className="text-dark-text-secondary">Сейчас</p>
+          <p className="font-semibold text-dark-text">{formatNumber(latestSubs)}</p>
         </div>
         <div>
-          <p className="text-dark-text-secondary">Охват историй/день</p>
-          <p className="font-semibold text-dark-text">{formatNumber(avgStories)}</p>
+          <p className="text-dark-text-secondary">Максимум</p>
+          <p className="font-semibold text-dark-text">{formatNumber(maxSubs)}</p>
         </div>
         <div>
-          <p className="text-dark-text-secondary">Охват клипов/день</p>
-          <p className="font-semibold text-dark-text">{formatNumber(avgClips)}</p>
-        </div>
-        <div>
-          <p className="text-dark-text-secondary">Охват видео/день</p>
-          <p className="font-semibold text-dark-text">{formatNumber(avgVideos)}</p>
+          <p className="text-dark-text-secondary">Прирост</p>
+          <p className={`font-semibold ${growth >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+            {growth >= 0 ? '+' : ''}{formatNumber(growth)}
+          </p>
         </div>
       </div>
     </motion.div>

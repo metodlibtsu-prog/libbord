@@ -156,6 +156,7 @@ export interface VkReachPoint {
   date: string
   reach: number
   views: number
+  subscribers: number
 }
 
 export interface VkEngagementPoint {

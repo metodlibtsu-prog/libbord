@@ -477,9 +477,10 @@ async def get_vk_stats(
         er_delta_pct=None,
     )
 
-    # Build reach trend
+    # Build reach trend (includes total_subscribers since reach/views are unavailable via API)
     reach_trend = [
-        VkReachPoint(date=str(m.date), reach=m.visitors, views=m.views) for m in vk_metrics
+        VkReachPoint(date=str(m.date), reach=m.visitors, views=m.views, subscribers=m.total_subscribers)
+        for m in vk_metrics
     ]
 
     # Build engagement trend
