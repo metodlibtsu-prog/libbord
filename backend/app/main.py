@@ -10,6 +10,7 @@ from app.database import engine
 import app.models  # noqa: F401 — ensures all models are registered with Base.metadata
 from app.models.base import Base
 from app.routers import (
+    ai,
     channels,
     dashboard,
     engagement_metrics,
@@ -70,6 +71,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth_router)
+app.include_router(ai.router)
 app.include_router(dashboard.router)
 app.include_router(libraries.router)
 app.include_router(channels.router)

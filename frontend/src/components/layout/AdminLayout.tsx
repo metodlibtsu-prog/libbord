@@ -3,10 +3,8 @@ import { signOut } from '@/api/auth'
 import { useAuth } from '@/context/AuthContext'
 
 const navItems = [
-  { to: '/admin', label: 'Обзор' },
-  { to: '/admin/channels', label: 'Каналы' },
+  { to: '/admin', label: 'Ресурсы' },
   { to: '/admin/counters', label: 'Счётчики' },
-  { to: '/admin/engagement', label: 'Вовлечённость' },
   { to: '/admin/reviews', label: 'Отзывы' },
   { to: '/admin/vk', label: 'ВКонтакте' },
 ]

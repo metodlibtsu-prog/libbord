@@ -10,6 +10,11 @@ import {
 } from '@/api/dashboard'
 import { usePeriod } from '@/context/PeriodContext'
 import { useRobots } from '@/context/RobotsContext'
+import type { Period } from '@/types'
+
+function apiPeriod(period: Period): Exclude<Period, 'custom'> {
+  return period === 'custom' ? 'month' : period
+}
 
 export function useOverview(libraryId: string) {
   const { period, customFrom, customTo, counterId } = usePeriod()
@@ -17,7 +22,7 @@ export function useOverview(libraryId: string) {
   const hasCustom = customFrom && customTo
   return useQuery({
     queryKey: ['overview', libraryId, period, customFrom, customTo, counterId, excludeRobots],
-    queryFn: () => fetchOverview(libraryId, period, hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
+    queryFn: () => fetchOverview(libraryId, apiPeriod(period), hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
     enabled: !!libraryId,
   })
 }
@@ -28,7 +33,7 @@ export function useChannels(libraryId: string) {
   const hasCustom = customFrom && customTo
   return useQuery({
     queryKey: ['channels', libraryId, period, customFrom, customTo, counterId, excludeRobots],
-    queryFn: () => fetchChannels(libraryId, period, hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
+    queryFn: () => fetchChannels(libraryId, apiPeriod(period), hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
     enabled: !!libraryId,
   })
 }
@@ -39,7 +44,7 @@ export function useBehavior(libraryId: string) {
   const hasCustom = customFrom && customTo
   return useQuery({
     queryKey: ['behavior', libraryId, period, customFrom, customTo, counterId, excludeRobots],
-    queryFn: () => fetchBehavior(libraryId, period, hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
+    queryFn: () => fetchBehavior(libraryId, apiPeriod(period), hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
     enabled: !!libraryId,
   })
 }
@@ -49,7 +54,7 @@ export function useEngagement(libraryId: string) {
   const hasCustom = customFrom && customTo
   return useQuery({
     queryKey: ['engagement', libraryId, period, customFrom, customTo],
-    queryFn: () => fetchEngagement(libraryId, period, hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined),
+    queryFn: () => fetchEngagement(libraryId, apiPeriod(period), hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined),
     enabled: !!libraryId,
   })
 }
@@ -68,7 +73,7 @@ export function useInsights(libraryId: string) {
   const hasCustom = customFrom && customTo
   return useQuery({
     queryKey: ['insights', libraryId, period, customFrom, customTo, counterId, excludeRobots],
-    queryFn: () => fetchInsights(libraryId, period, hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
+    queryFn: () => fetchInsights(libraryId, apiPeriod(period), hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
     enabled: !!libraryId,
   })
 }
@@ -78,7 +83,7 @@ export function useVkStats(libraryId: string) {
   const hasCustom = customFrom && customTo
   return useQuery({
     queryKey: ['vk-dashboard', libraryId, period, customFrom, customTo],
-    queryFn: () => fetchVkDashboard(libraryId, period, hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined),
+    queryFn: () => fetchVkDashboard(libraryId, apiPeriod(period), hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined),
     enabled: !!libraryId,
   })
 }

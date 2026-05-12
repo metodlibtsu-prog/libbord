@@ -1,4 +1,4 @@
-export type Period = 'today' | 'yesterday' | 'week' | 'month' | 'quarter' | 'year'
+export type Period = 'today' | 'yesterday' | 'week' | 'month' | 'quarter' | 'year' | 'custom'
 
 export type ChannelType = 'website' | 'e_library' | 'catalog' | 'telegram' | 'vk' | 'mobile_app' | 'other'
 

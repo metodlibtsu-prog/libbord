@@ -1,85 +1,274 @@
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import PeriodSelector from '@/components/common/PeriodSelector'
-import DateRangePicker from '@/components/common/DateRangePicker'
-import RobotsToggle from '@/components/common/RobotsToggle'
-import Logo from '@/components/common/Logo'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { usePeriod } from '@/context/PeriodContext'
+import { useRobots } from '@/context/RobotsContext'
 import { useAuth } from '@/context/AuthContext'
-import { useTheme } from '@/context/ThemeContext'
-import type { MetricCounter } from '@/types'
-import CounterSelector from '@/components/common/CounterSelector'
+import type { MetricCounter, Period } from '@/types'
+import {
+  ArrowIcon,
+  CalendarIcon,
+  ChevronIcon,
+  FilterIcon,
+  SparklesIcon,
+} from '@/components/common/Icons'
+
+const PERIODS: { id: Exclude<Period, 'custom'>; label: string }[] = [
+  { id: 'today', label: 'Сегодня' },
+  { id: 'yesterday', label: 'Вчера' },
+  { id: 'week', label: '7 дней' },
+  { id: 'month', label: '30 дней' },
+  { id: 'quarter', label: 'Квартал' },
+  { id: 'year', label: 'Год' },
+]
+
+function useClickOutside(ref: React.RefObject<HTMLElement | null>, onClose: () => void, open: boolean) {
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open, onClose, ref])
+}
 
 interface Props {
   libraryName: string
   counters?: MetricCounter[]
+  onOpenAI: () => void
+  aiOpen: boolean
 }
 
-export default function Header({ libraryName, counters }: Props) {
+export default function Header({ libraryName, counters = [], onOpenAI, aiOpen }: Props) {
+  const { period, setPeriod, customFrom, customTo, setCustomFrom, setCustomTo, counterId, setCounterId } = usePeriod()
+  const { excludeRobots, setExcludeRobots } = useRobots()
   const { session } = useAuth()
-  const { isDark, toggleTheme } = useTheme()
+  const navigate = useNavigate()
+
+  const [periodOpen, setPeriodOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [draftFrom, setDraftFrom] = useState(customFrom)
+  const [draftTo, setDraftTo] = useState(customTo)
+
+  const periodRef = useRef<HTMLDivElement>(null)
+  const filterRef = useRef<HTMLDivElement>(null)
+
+  useClickOutside(periodRef, () => setPeriodOpen(false), periodOpen)
+  useClickOutside(filterRef, () => setFilterOpen(false), filterOpen)
+
+  const activeFilterCount =
+    (excludeRobots ? 0 : 1) + (counterId ? 1 : 0)
+
+  const applyCustomPeriod = () => {
+    if (draftFrom && draftTo) {
+      setCustomFrom(draftFrom)
+      setCustomTo(draftTo)
+      setPeriod('custom')
+      setPeriodOpen(false)
+    }
+  }
+
+  const periodLabel =
+    period === 'custom' && customFrom && customTo
+      ? `${customFrom} – ${customTo}`
+      : 'Период'
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="glass-card sticky top-0 z-50 border-b border-dark-border"
-    >
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Logo className="w-10 h-10 flex-shrink-0" />
-            <div>
-              <h1 className="text-xl font-bold gradient-text">Libboard</h1>
-              <p className="text-sm text-dark-text-secondary">{libraryName}</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Theme toggle */}
-            <motion.button
-              onClick={toggleTheme}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-2 rounded-lg border border-dark-border hover:border-gradient-cyan text-dark-text-secondary hover:text-gradient-cyan transition-all duration-300"
-              aria-label="Переключить тему"
-              title={isDark ? 'Светлая тема' : 'Тёмная тема'}
-            >
-              {isDark ? (
-                /* Sun icon */
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l.707.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-                </svg>
-              ) : (
-                /* Moon icon */
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                </svg>
-              )}
-            </motion.button>
-
-            {counters && counters.length > 0 && <CounterSelector counters={counters} />}
-            <RobotsToggle />
-            <PeriodSelector />
-            <DateRangePicker />
-
-            {session ? (
-              <Link
-                to="/admin"
-                className="ml-2 px-3 py-1.5 text-sm font-medium text-white bg-gradient-premium rounded-md hover:shadow-glow-cyan transition-all duration-300"
-              >
-                Админ-панель
-              </Link>
-            ) : (
-              <Link
-                to="/admin/login"
-                className="ml-2 px-3 py-1.5 text-sm font-medium text-dark-text border border-dark-border rounded-md hover:border-gradient-cyan transition-all duration-300"
-              >
-                Войти
-              </Link>
-            )}
-          </div>
+    <div className="lb-topbar lb-glass-strong">
+      {/* Brand */}
+      <div className="lb-brand">
+        <div className="lb-brand-mark">Lb</div>
+        <div>
+          <div className="lb-brand-name">Libboard</div>
+          <div className="lb-brand-sub">{libraryName}</div>
         </div>
       </div>
-    </motion.header>
+
+      {/* Segmented period */}
+      <div className="lb-seg" style={{ position: 'relative' }} ref={periodRef}>
+        {PERIODS.map((p) => (
+          <button
+            key={p.id}
+            className={period === p.id ? 'lb-active' : ''}
+            onClick={() => setPeriod(p.id)}
+          >
+            {p.label}
+          </button>
+        ))}
+        <button
+          className={period === 'custom' ? 'lb-active' : ''}
+          onClick={() => setPeriodOpen((o) => !o)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          <CalendarIcon style={{ width: 13, height: 13 }} />
+          {periodLabel}
+        </button>
+
+        {periodOpen && (
+          <div className="lb-popover lb-glass-strong lb-right">
+            <div className="lb-eyebrow" style={{ marginBottom: 10 }}>Произвольный период</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div>
+                <label className="lb-small lb-muted" style={{ display: 'block', marginBottom: 4 }}>с</label>
+                <input
+                  type="date"
+                  className="lb-input"
+                  value={draftFrom}
+                  onChange={(e) => setDraftFrom(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="lb-small lb-muted" style={{ display: 'block', marginBottom: 4 }}>по</label>
+                <input
+                  type="date"
+                  className="lb-input"
+                  value={draftTo}
+                  onChange={(e) => setDraftTo(e.target.value)}
+                />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 14, justifyContent: 'flex-end' }}>
+              <button className="lb-pill lb-ghost" onClick={() => setPeriodOpen(false)}>Отмена</button>
+              <button
+                className="lb-pill lb-accent"
+                onClick={applyCustomPeriod}
+                disabled={!draftFrom || !draftTo}
+              >
+                Применить
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Filters popover */}
+      <div style={{ position: 'relative' }} ref={filterRef}>
+        <button className="lb-pill" onClick={() => setFilterOpen((o) => !o)}>
+          <FilterIcon style={{ width: 13, height: 13 }} />
+          Фильтры
+          {activeFilterCount > 0 && (
+            <span
+              className="lb-mono"
+              style={{
+                background: 'var(--accent)',
+                color: 'white',
+                fontSize: 10,
+                padding: '1px 6px',
+                borderRadius: 6,
+                marginLeft: 2,
+              }}
+            >
+              {activeFilterCount}
+            </span>
+          )}
+          <ChevronIcon style={{ width: 12, height: 12, opacity: 0.6 }} />
+        </button>
+
+        {filterOpen && (
+          <div className="lb-popover lb-glass-strong" style={{ minWidth: 340 }}>
+            <div className="lb-eyebrow" style={{ marginBottom: 8 }}>Трафик</div>
+            <div className="lb-seg" style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+              <button
+                className={excludeRobots ? 'lb-active' : ''}
+                onClick={() => setExcludeRobots(true)}
+              >
+                Только люди
+              </button>
+              <button
+                className={!excludeRobots ? 'lb-active' : ''}
+                onClick={() => setExcludeRobots(false)}
+              >
+                Все посещения
+              </button>
+            </div>
+
+            {counters.length > 0 && (
+              <>
+                <div
+                  className="lb-eyebrow"
+                  style={{
+                    marginTop: 16,
+                    marginBottom: 8,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <span>Счётчик Яндекс.Метрики</span>
+                  {counterId && (
+                    <button
+                      onClick={() => setCounterId('')}
+                      style={{
+                        appearance: 'none',
+                        border: 0,
+                        background: 'transparent',
+                        color: 'var(--accent)',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Сбросить
+                    </button>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {counters.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setCounterId(counterId === c.id ? '' : c.id)}
+                      className="lb-pill"
+                      style={{
+                        fontSize: 12,
+                        padding: '5px 10px',
+                        ...(counterId === c.id
+                          ? {
+                              background: 'var(--accent-soft)',
+                              borderColor: 'var(--accent)',
+                              color: 'var(--accent)',
+                            }
+                          : {}),
+                      }}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="lb-spacer" />
+
+      {/* AI button */}
+      <button
+        className="lb-pill"
+        onClick={onOpenAI}
+        style={{
+          background: aiOpen
+            ? 'var(--ink-0)'
+            : 'linear-gradient(135deg, rgba(49,70,230,0.08), rgba(14,165,165,0.08))',
+          borderColor: aiOpen ? 'var(--ink-0)' : 'rgba(49,70,230,0.25)',
+          color: aiOpen ? 'white' : 'var(--accent)',
+          fontWeight: 700,
+          padding: '8px 14px',
+        }}
+      >
+        <SparklesIcon style={{ width: 14, height: 14 }} />
+        AI-аналитик
+      </button>
+
+      {/* Admin link */}
+      <button
+        className="lb-pill lb-ghost"
+        onClick={() => navigate(session ? '/admin' : '/admin/login')}
+        style={{ padding: '8px 14px' }}
+      >
+        Админ-панель
+        <ArrowIcon style={{ width: 12, height: 12, opacity: 0.55 }} />
+      </button>
+    </div>
   )
 }

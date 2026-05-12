@@ -23,9 +23,13 @@ services:
       dockerfile: backend/Dockerfile.prod
     container_name: libbord-backend
     restart: unless-stopped
-    env_file: .env.production
+    env_file:
+      - path: .env.production
+        required: true
     environment:
       DATABASE_URL: postgresql+asyncpg://libbord:${POSTGRES_PASSWORD}@postgres:5432/libbord
+      FRONTEND_URL: http://${SERVER_IP}:8100
+      CORS_ORIGINS: '["http://${SERVER_IP}:8100"]'
     depends_on:
       postgres:
         condition: service_healthy

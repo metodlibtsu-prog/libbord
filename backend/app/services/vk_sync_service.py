@@ -101,7 +101,7 @@ async def sync_vk(
             wall_by_date = {d["date"]: d for d in wall_data}
             for date_str, wday in wall_by_date.items():
                 date_obj = datetime.date.fromisoformat(date_str)
-                stmt = insert(EngagementMetric).values(
+                eng_stmt = insert(EngagementMetric).values(
                     library_id=library_id,
                     channel_id=channel.id,
                     date=date_obj,
@@ -111,12 +111,12 @@ async def sync_vk(
                 ).on_conflict_do_update(
                     index_elements=["library_id", "channel_id", "date"],
                     set_={
-                        "likes": stmt.excluded.likes,
-                        "reposts": stmt.excluded.reposts,
-                        "comments": stmt.excluded.comments,
+                        "likes": wday["likes"],
+                        "reposts": wday["reposts"],
+                        "comments": wday["comments"],
                     }
                 )
-                await db.execute(stmt)
+                await db.execute(eng_stmt)
                 posts_synced += 1
 
             await db.commit()

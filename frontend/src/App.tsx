@@ -7,9 +7,7 @@ import { RobotsProvider } from '@/context/RobotsContext'
 import DashboardPage from '@/pages/DashboardPage'
 import AdminLoginPage from '@/pages/AdminLoginPage'
 import AdminDashboardPage from '@/pages/AdminDashboardPage'
-import AdminChannelsPage from '@/pages/AdminChannelsPage'
 import AdminCountersPage from '@/pages/AdminCountersPage'
-import AdminEngagementPage from '@/pages/AdminEngagementPage'
 import AdminReviewsPage from '@/pages/AdminReviewsPage'
 import AdminVkPage from '@/pages/AdminVkPage'
 import AdminLayout from '@/components/layout/AdminLayout'
@@ -39,9 +37,7 @@ export default function App() {
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboardPage />} />
-                <Route path="channels" element={<AdminChannelsPage />} />
                 <Route path="counters" element={<AdminCountersPage />} />
-                <Route path="engagement" element={<AdminEngagementPage />} />
                 <Route path="reviews" element={<AdminReviewsPage />} />
                 <Route path="vk" element={<AdminVkPage />} />
               </Route>

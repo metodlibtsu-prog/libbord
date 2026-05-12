@@ -4,17 +4,13 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Libboard — Premium Analytics Dashboard</title>
-    <meta name="description" content="Премиум аналитический дашборд для библиотек" />
-    <script>
-      // Anti-flicker: apply theme before React mounts
-      (function() {
-        var t = localStorage.getItem('theme');
-        document.documentElement.dataset.theme = (t === 'light' || t === 'dark') ? t : 'dark';
-      })();
-    </script>
+    <title>Libboard — Analytics Dashboard</title>
+    <meta name="description" content="Аналитический дашборд для библиотек" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
-  <body class="bg-dark-bg text-dark-text antialiased">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
