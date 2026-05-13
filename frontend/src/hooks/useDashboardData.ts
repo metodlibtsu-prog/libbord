@@ -6,6 +6,7 @@ import {
   fetchInsights,
   fetchOverview,
   fetchReviews,
+  fetchTrend,
   fetchVkDashboard,
 } from '@/api/dashboard'
 import { usePeriod } from '@/context/PeriodContext'
@@ -74,6 +75,17 @@ export function useInsights(libraryId: string) {
   return useQuery({
     queryKey: ['insights', libraryId, period, customFrom, customTo, counterId, excludeRobots],
     queryFn: () => fetchInsights(libraryId, apiPeriod(period), hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
+    enabled: !!libraryId,
+  })
+}
+
+export function useTrend(libraryId: string) {
+  const { period, customFrom, customTo, counterId } = usePeriod()
+  const { excludeRobots } = useRobots()
+  const hasCustom = customFrom && customTo
+  return useQuery({
+    queryKey: ['trend', libraryId, period, customFrom, customTo, counterId, excludeRobots],
+    queryFn: () => fetchTrend(libraryId, apiPeriod(period), hasCustom ? customFrom : undefined, hasCustom ? customTo : undefined, counterId || undefined, excludeRobots),
     enabled: !!libraryId,
   })
 }

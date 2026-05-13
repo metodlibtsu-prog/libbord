@@ -18,6 +18,7 @@ import {
   useChannels,
   useOverview,
   useReviews,
+  useTrend,
   useVkStats,
 } from '@/hooks/useDashboardData'
 
@@ -40,12 +41,24 @@ export default function DashboardPage() {
   })
 
   const overview = useOverview(libraryId)
+  const trend = useTrend(libraryId)
   const channels = useChannels(libraryId)
   const behavior = useBehavior(libraryId)
   const reviews = useReviews(libraryId)
   const vkStats = useVkStats(libraryId)
 
   const isFiltered = !!counterId
+
+  // VK section: show if subscribers exist or any engagement data
+  const hasVkData = !isFiltered && vkStats.data && !vkStats.isLoading && (
+    vkStats.data.kpis.subscribers > 0 ||
+    vkStats.data.engagement_trend.length > 0 ||
+    vkStats.data.reach_trend.length > 0
+  )
+  const hasVkCharts = vkStats.data && (
+    vkStats.data.engagement_trend.length > 0 ||
+    vkStats.data.reach_trend.some(p => p.subscribers > 0)
+  )
 
   if (libLoading) return <LoadingSpinner />
 
@@ -62,7 +75,7 @@ export default function DashboardPage() {
         />
 
         {/* Block 1: KPI Pulse */}
-        <KpiCards data={overview.data} isLoading={overview.isLoading} />
+        <KpiCards data={overview.data} isLoading={overview.isLoading} trend={trend.data} />
 
         {/* Block 2: Channels */}
         <div className="lb-section">
@@ -82,16 +95,16 @@ export default function DashboardPage() {
         </div>
 
         {/* Block 4: VK Stats */}
-        {!isFiltered && vkStats.data && !vkStats.isLoading && (
+        {hasVkData && (
           <div className="lb-section">
             <div className="lb-section-head">
               <div className="lb-h2">ВКонтакте</div>
             </div>
-            <VkKpiCards kpis={vkStats.data.kpis} />
-            {vkStats.data.engagement_trend && vkStats.data.engagement_trend.length > 0 && (
+            <VkKpiCards kpis={vkStats.data!.kpis} />
+            {hasVkCharts && (
               <div className="lb-grid-2" style={{ marginTop: 18 }}>
-                <VkReachChart data={vkStats.data.engagement_trend} />
-                <VkContentChart data={vkStats.data.reach_trend} />
+                <VkReachChart data={vkStats.data!.engagement_trend} />
+                <VkContentChart data={vkStats.data!.reach_trend} />
               </div>
             )}
           </div>

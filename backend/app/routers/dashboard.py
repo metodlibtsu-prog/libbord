@@ -75,6 +75,19 @@ async def channel_trend(
     return await dashboard_service.get_channel_trend(db, library_id, channel_id, period, date_from, date_to, exclude_robots)
 
 
+@router.get("/trend", response_model=list[ChannelTrendPoint])
+async def overview_trend(
+    library_id: uuid.UUID,
+    period: Period = Period.month,
+    counter_id: uuid.UUID | None = None,
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
+    exclude_robots: bool = Query(True),
+    db: AsyncSession = Depends(get_db),
+):
+    return await dashboard_service.get_overview_trend(db, library_id, period, counter_id, date_from, date_to, exclude_robots)
+
+
 @router.get("/behavior", response_model=BehaviorData)
 async def behavior(
     library_id: uuid.UUID,

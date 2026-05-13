@@ -151,6 +151,40 @@ async def get_channel_trend(
     ]
 
 
+async def get_overview_trend(
+    db: AsyncSession,
+    library_id: uuid.UUID,
+    period: Period,
+    counter_id: uuid.UUID | None = None,
+    date_from_custom: date | None = None,
+    date_to_custom: date | None = None,
+    exclude_robots: bool = True,
+) -> list[ChannelTrendPoint]:
+    date_from, date_to, _, _ = resolve_period_or_custom(period, date_from_custom, date_to_custom)
+
+    q = (
+        select(
+            TrafficMetric.date,
+            func.sum(TrafficMetric.views),
+            func.sum(TrafficMetric.visits),
+            func.sum(TrafficMetric.users),
+        )
+        .where(
+            TrafficMetric.library_id == library_id,
+            TrafficMetric.date >= date_from,
+            TrafficMetric.date <= date_to,
+            TrafficMetric.exclude_robots == exclude_robots,
+        )
+        .group_by(TrafficMetric.date)
+        .order_by(TrafficMetric.date)
+    )
+    if counter_id:
+        q = q.where(TrafficMetric.counter_id == counter_id)
+
+    rows = (await db.execute(q)).all()
+    return [ChannelTrendPoint(date=r[0], views=r[1], visits=r[2], users=r[3]) for r in rows]
+
+
 async def get_behavior(
     db: AsyncSession,
     library_id: uuid.UUID,

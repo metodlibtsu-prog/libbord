@@ -119,6 +119,20 @@ export async function fetchInsights(
   return data
 }
 
+export async function fetchTrend(
+  libraryId: string,
+  period: Period,
+  dateFrom?: string,
+  dateTo?: string,
+  counterId?: string,
+  excludeRobots = true,
+): Promise<ChannelTrendPoint[]> {
+  const params: Record<string, unknown> = { library_id: libraryId, period, exclude_robots: excludeRobots, ...dateParams(dateFrom, dateTo) }
+  if (counterId) params.counter_id = counterId
+  const { data } = await apiClient.get('/dashboard/trend', { params })
+  return data
+}
+
 export async function fetchVkDashboard(
   libraryId: string,
   period: Period,

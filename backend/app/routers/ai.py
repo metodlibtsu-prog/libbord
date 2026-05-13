@@ -14,9 +14,15 @@ from app.services import dashboard_service
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-flash-1.5")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+# Primary model
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "inclusionai/ring-2.6-1t:free")
+
+# Fallback model (separate key)
+OPENROUTER_API_KEY_FALLBACK = os.getenv("OPENROUTER_API_KEY_FALLBACK", "")
+OPENROUTER_MODEL_FALLBACK = os.getenv("OPENROUTER_MODEL_FALLBACK", "openai/gpt-oss-120b:free")
 
 
 class ChatMessage(BaseModel):
@@ -103,12 +109,6 @@ def _build_system_prompt(
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
-    if not OPENROUTER_API_KEY:
-        raise HTTPException(
-            status_code=503,
-            detail="AI-аналитик не настроен. Добавьте OPENROUTER_API_KEY в переменные окружения.",
-        )
-
     library_id = req.library_id
 
     # Gather dashboard context
@@ -241,26 +241,43 @@ async def chat(req: ChatRequest, db: AsyncSession = Depends(get_db)):
             messages.append({"role": h.role, "content": h.content})
     messages.append({"role": "user", "content": req.message})
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            OPENROUTER_URL,
-            headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://libboard.app",
-                "X-Title": "Libboard AI Analyst",
-            },
-            json={
-                "model": OPENROUTER_MODEL,
-                "messages": messages,
-                "max_tokens": 1024,
-                "temperature": 0.4,
-            },
+    if not OPENROUTER_API_KEY and not OPENROUTER_API_KEY_FALLBACK:
+        raise HTTPException(
+            status_code=503,
+            detail="AI-аналитик не настроен. Добавьте OPENROUTER_API_KEY в переменные окружения.",
         )
 
-    if resp.status_code != 200:
-        raise HTTPException(status_code=502, detail=f"OpenRouter error: {resp.text[:200]}")
+    candidates = []
+    if OPENROUTER_API_KEY:
+        candidates.append((OPENROUTER_MODEL, OPENROUTER_API_KEY))
+    if OPENROUTER_API_KEY_FALLBACK:
+        candidates.append((OPENROUTER_MODEL_FALLBACK, OPENROUTER_API_KEY_FALLBACK))
 
-    body = resp.json()
-    reply = body["choices"][0]["message"]["content"]
-    return ChatResponse(reply=reply)
+    last_error = ""
+    async with httpx.AsyncClient(timeout=30) as client:
+        for model, api_key in candidates:
+            try:
+                resp = await client.post(
+                    OPENROUTER_URL,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "https://libboard.app",
+                        "X-Title": "Libboard AI Analyst",
+                    },
+                    json={
+                        "model": model,
+                        "messages": messages,
+                        "max_tokens": 1024,
+                        "temperature": 0.4,
+                    },
+                )
+                if resp.status_code == 200:
+                    body = resp.json()
+                    reply = body["choices"][0]["message"]["content"]
+                    return ChatResponse(reply=reply)
+                last_error = f"model={model} status={resp.status_code}: {resp.text[:200]}"
+            except Exception as e:
+                last_error = f"model={model} exception: {str(e)[:200]}"
+
+    raise HTTPException(status_code=502, detail=f"OpenRouter error: {last_error}")

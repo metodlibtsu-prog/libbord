@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { KpiOverview } from '@/types'
+import type { ChannelTrendPoint, KpiOverview } from '@/types'
 import { usePeriod } from '@/context/PeriodContext'
 import { ArrowIcon, ArrowDownIcon, ArrowUpIcon } from '@/components/common/Icons'
 import { formatNumber } from '@/utils/formatters'
@@ -7,6 +7,7 @@ import { formatNumber } from '@/utils/formatters'
 interface Props {
   data?: KpiOverview
   isLoading: boolean
+  trend?: ChannelTrendPoint[]
 }
 
 function Sparkline({ data, color = '#3146E6', height = 34 }: { data: number[]; color?: string; height?: number }) {
@@ -65,7 +66,7 @@ function FlowConnector({ rate, label }: { rate: string; label: string }) {
   )
 }
 
-export default function KpiCards({ data, isLoading }: Props) {
+export default function KpiCards({ data, isLoading, trend }: Props) {
   const { period, customFrom, customTo } = usePeriod()
 
   const dateLabel = useMemo(() => {
@@ -123,7 +124,7 @@ export default function KpiCards({ data, isLoading }: Props) {
           <div className="lb-pulse-value lb-mono">{formatNumber(views)}</div>
           <Delta value={data.views_delta_pct} />
           <div className="lb-pulse-spark">
-            <Sparkline data={Array(7).fill(views)} color="#3146E6" />
+            <Sparkline data={trend && trend.length > 1 ? trend.map(t => t.views) : Array(7).fill(views)} color="#3146E6" />
           </div>
         </div>
 
@@ -138,7 +139,7 @@ export default function KpiCards({ data, isLoading }: Props) {
           <div className="lb-pulse-value lb-mono">{formatNumber(visits)}</div>
           <Delta value={data.visits_delta_pct} />
           <div className="lb-pulse-spark">
-            <Sparkline data={Array(7).fill(visits)} color="#0EA5A5" />
+            <Sparkline data={trend && trend.length > 1 ? trend.map(t => t.visits) : Array(7).fill(visits)} color="#0EA5A5" />
           </div>
         </div>
 
@@ -153,7 +154,7 @@ export default function KpiCards({ data, isLoading }: Props) {
           <div className="lb-pulse-value lb-mono">{formatNumber(users)}</div>
           <Delta value={data.users_delta_pct} />
           <div className="lb-pulse-spark">
-            <Sparkline data={Array(7).fill(users)} color="#7C3AED" />
+            <Sparkline data={trend && trend.length > 1 ? trend.map(t => t.users) : Array(7).fill(users)} color="#7C3AED" />
           </div>
         </div>
       </div>
